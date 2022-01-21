@@ -1,0 +1,31 @@
+{
+    "DataGuard": "Disabled",
+    "LogicalDrives": [
+      {
+         "LogicalDriveName": "{{ OS_LogicalDriveName }}",
+         "Raid": "{{ OS_Raid }}",
+         "CapacityGiB": {{ OS_CapacityGiB }},
+         "DataDrives": [
+      {% for OS_Data_Drive in OS_Data_Drives %}
+     "{{ OS_Data_Drive }}"{% if loop.last %}{% else %},
+   {% endif %}
+   {% endfor %}
+
+         ],
+         "DriveLocationFormat": "ControllerPort:Box:Bay"
+      },
+       {
+         "LogicalDriveName": "{{ HANA_LogicalDriveName }}",
+         "Raid": "{{ HANA_Raid }}",
+         "CapacityGiB": {{ HANA_CapacityGiB }},
+         "DataDrives": [
+      {% for HANA_Drive in HANA_Drives %}
+     "{{ HANA_Drive }}"{% if loop.last %}{% else %},
+   {% endif %}
+   {% endfor %}
+
+         ],
+         "DriveLocationFormat": "ControllerPort:Box:Bay"
+      },
+    ]
+}

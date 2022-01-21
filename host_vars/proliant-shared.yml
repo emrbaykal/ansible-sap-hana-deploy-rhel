@@ -1,0 +1,90 @@
+---
+  # Proliant Server ILO Info
+  server_hardware_ilo_ip: 10.205.77.222
+  server_hardware_username: hpadmin
+  server_hardware_password: HP1nvent
+
+  # Persistent Memory Configuration
+  # If Persistent Memory  defined
+  # You can enable this feature (true/false)
+  pmem: false
+
+  # Define Multipath Configuration
+  multipath: true
+
+  #### Host Based Variables ####
+  # SUSE Connect subscribe  variables
+  regcode: B7B6DC7ECAC778
+
+  # OS Data Logical Drive
+  OS_LogicalDriveName: OS
+  OS_Raid: Raid1
+  #Set to -1 to use all remaining space for maximum size
+  OS_CapacityGiB: -1
+  OS_Partition: /dev/sda2
+
+  # Operating System Logical disk Parameters
+  hana_data_disks:
+      partition: /dev/sdb
+      volume_group: vg_hana_data
+  hana_shared_disks:
+      partition: /dev/sdc
+      volume_group: vg_hana_shared
+  hana_log_disks:
+      partition: /dev/sdd
+      volume_group: vg_hana_log
+  hana_usr_sap_disks:
+      partition: /dev/sde
+      volume_group: vg_hana_usr_sap
+
+  # Operating System Logical disk Parameters
+  hanavols:
+      hana_shared:
+        size: 180G
+        vol: vg_hana_shared
+        lv: lv_hana_shared
+        mountpoint: /hana/shared
+        fs_type: xfs
+      hana_data:
+        size: 180G
+        vol: vg_hana_data
+        lv: lv_hana_data
+        mountpoint: /hana/data
+        fs_type: xfs
+      hana_logs:
+        size: 180G
+        vol: vg_hana_log
+        lv: lv_hana_log
+        mountpoint: /hana/log
+        fs_type: xfs
+      usr_sap:
+        size: 80G
+        vol: vg_hana_usr_sap
+        lv: vg_hana_usr_sap
+        mountpoint: /usr/sap
+        fs_type: xfs
+
+
+  ### Hana DB Configuration Parameters ###
+  # Components ( Valid values: all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | pos | sal | sca | sop | trd | udf )
+  components: server,client
+  # Action ( Default: exit; Valid values: install | update | extract_components )
+  action: install
+  # SAP HANA System ID (ex: HDB)
+  sid: PED
+  # Instance Number (ex: 00)
+  number: "00"
+  # Database Mode ( Default: single_container; Valid values: single_container | multiple_containers )
+  db_mode: multiple_containers
+  # System Usage ( Default: custom; Valid values: production | test | development | custom )
+  system_usage: production
+  # SAP Host Agent User (sapadm) Password
+  sapadm_password: HP1nv3nt
+  # System Administrator Password
+  system_admin_password: HP1nv3nt
+  # Database User (SYSTEM) Password
+  system_user_password: HP1nv3nt
+  # Restrict maximum memory allocation? ( Default: off; Valid values: off | on )
+  restrict_max_mem: off
+  # Maximum Memory Allocation in MB
+  max_mem: 0

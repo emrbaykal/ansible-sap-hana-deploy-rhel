@@ -1,0 +1,35 @@
+---
+# tasks file for ssap-hana-deploy
+
+  - name: Gathering facts
+    setup:
+    tags:
+      - role::sap-hana-deploy
+      - role::sap-hana-deploy::setup
+
+  - import_tasks: 01-preparing-installation.yml
+    tags:
+      - role::sap-hana-deploy
+      - role::sap-hana-deploy::preparing
+
+  - import_tasks: 02-hana-installation.yml
+    tags:
+      - role::sap-hana-deploy
+      - role::sap-hana-deploy::installation
+
+  - import_tasks: 03-host-agent-installation.yml
+    tags:
+      - role::sap-hana-deploy
+      - role::sap-hana-deploy::host-agent
+
+  - import_tasks: 04-hana-pmem-config.yml
+    when:  pmem == true
+    tags:
+      - role::sap-hana-deploy
+      - role::sap-hana-deploy::hana-pmem-config
+
+  - import_tasks: 05-hana-service-user.yml
+    tags:
+      - role::sap-hana-deploy
+      - role::sap-hana-deploy::hana-service-user
+

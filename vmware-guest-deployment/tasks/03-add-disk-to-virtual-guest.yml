@@ -1,0 +1,51 @@
+---
+
+  - name: Add disks to Simplivity virtual machine using UUID
+    vmware_guest_disk:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      datacenter: "{{ datacenter }}"
+      validate_certs: no
+      name: "{{ guest_name }}"
+      disk:
+        - size_gb: "{{ item.size }}"
+          datastore: "{{ item.datastore }}"
+          state: present
+          scsi_controller: "{{ item.scsi_cont }}"
+          scsi_type: 'paravirtual'
+          unit_number: "{{ item.unit_num }}"
+    delegate_to: localhost
+    register: disk_facts
+    with_items:
+      - { size: '{{ hana_data_size_gb }}', datastore: '{{ hana_data_datastore }}', scsi_cont: '1', unit_num: '0'}
+      - { size: '{{ hana_log_size_gb }}', datastore: '{{ hana_log_datastore }}', scsi_cont: '2', unit_num: '0'}
+      - { size: '{{ hana_shared_size_gb }}', datastore: '{{ hana_shared_datastore }}', scsi_cont: '3', unit_num: '0'}
+      - { size: '{{ hana_usr_sap_size_gb }}', datastore: '{{ hana_usr_sap_datastore }}', scsi_cont: '1', unit_num: '1'}
+    when: virt_env == 'simplivity'
+
+
+  - name: Add disks to Vmware ESXI virtual machine using UUID
+    vmware_guest_disk:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      datacenter: "{{ datacenter }}"
+      validate_certs: no
+      name: "{{ guest_name }}"
+      disk:
+        - size_gb: "{{ item.size }}"
+          datastore: "{{ item.datastore }}"
+          state: present
+          scsi_controller: "{{ item.scsi_cont }}"
+          scsi_type: 'paravirtual'
+          unit_number: "{{ item.unit_num }}"
+    delegate_to: localhost
+    register: disk_facts
+    with_items:
+      - { size: '{{ hana_data_size_gb }}', datastore: '{{ hana_data_datastore }}', scsi_cont: '1', unit_num: '0'}
+      - { size: '{{ hana_log_size_gb }}', datastore: '{{ hana_log_datastore }}', scsi_cont: '2', unit_num: '0'}
+      - { size: '{{ hana_shared_size_gb }}', datastore: '{{ hana_shared_datastore }}', scsi_cont: '3', unit_num: '0'}
+      - { size: '{{ hana_usr_sap_size_gb }}', datastore: '{{ hana_usr_sap_datastore }}', scsi_cont: '1', unit_num: '1'}
+    when: virt_env == 'legacy'
+

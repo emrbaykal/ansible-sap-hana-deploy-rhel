@@ -1,0 +1,30 @@
+---
+# handlers file for sap-hana-security-hardening
+
+  - name: chkstat
+    command: chkstat --system --set
+
+  - name: newaliases
+    shell: '/usr/bin/newaliases'
+
+  - name: postmap
+    command: postmap /etc/postfix/canonical
+
+  - name: postfix
+    service:
+      name: postfix
+      state: restarted
+
+  - name: restart_auditd_service
+    command: "{{ item }}"
+    with_items:
+      - service  auditd  stop
+      - systemctl start auditd
+
+  - name: restart_rsyslog_service
+    service:
+      name: rsyslog
+      state: restarted
+
+  - name: unload_usb-storage
+    command: modprobe -r usb-storage

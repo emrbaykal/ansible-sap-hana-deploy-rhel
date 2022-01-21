@@ -1,0 +1,41 @@
+---
+# tasks file for oneview-config
+
+  - import_tasks: 01-authenticate-oneview.yml
+    run_once: True
+    tags:
+      - role::oneview-config
+      - role::oneview-config::authenticate
+
+  - import_tasks: 02-time-config.yml
+    run_once: True
+    tags:
+      - role::oneview-config
+      - role::oneview-config::time-config
+
+  - import_tasks: 03-create-scope.yml
+    run_once: True
+    tags:
+      - role::oneview-config
+      - role::oneview-config::create-scope
+
+  - import_tasks: 04-add-server-hardware.yml
+    tags:
+      - role::oneview-config
+      - role::oneview-config::add-server-hardware
+
+  - import_tasks: 05-get-server-hardware.yml
+    run_once: True
+    tags:
+      - role::oneview-config
+      - role::oneview-config::get-server-hardware
+
+  - import_tasks: 06-email-notification.yml
+    run_once: True
+    tags:
+      - role::oneview-config
+      - role::oneview-config::email-notification
+
+
+
+

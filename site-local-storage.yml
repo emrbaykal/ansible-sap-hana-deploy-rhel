@@ -1,0 +1,62 @@
+---
+
+- hosts: localhost
+  gather_facts: no
+
+  roles:
+    - { role: host-variable-local } # role::host-variable-local
+
+- hosts: hana
+  serial: 2
+  remote_user: root
+  gather_facts: no
+
+  vars:
+
+          # Automate OS Installation
+          # If ILO Can access to deployment server via using http protocol
+          # You can enable this feature (true/false)
+          automate_install: true
+          installation_media: RHEL8-2-SAP-x86_64_Custom-DVD.iso
+
+          # Sap Servers Hostname / IP Informations
+          fqdn: test.dom
+
+          # Mail Relay Host / Admin Mail Address
+          relayhost: 10.205.77.53
+          recipientmail: emre.baykal@hpe.com
+          sendermail: test@hpe.com
+
+          # Remote Sys Log Server
+          rsys_log_srv: 10.205.77.51
+          rsys_log_srv_port: 514
+
+          # Time Sync Parameters
+          ntp_servers:
+               hostname: 10.205.77.53
+               #hostname: 1.rhel.pool.ntp.org
+
+          # HPE Oneview Config Parameters
+          oneview_ip: 10.205.77.52
+          oneview_username: administrator
+          oneview_password: xxxxxxxxxxxx
+          email_sender: server@test.dom
+
+          # Hana Installation files
+          hana_deployment:
+              server: IMDB_SERVER20_055_0-80002031.SAR
+              client: IMDB_CLIENT20_008_16-80002082.SAR
+              sapcar: SAPCAR_1324-80000935.EXE
+              hostagent: saphostagentrpm_51-20009394.rpm
+              spp: P26228_001_spp-2019.12.0-SPP2019120.2019_1209.4.iso
+              source: /home/hpe/ansible/ansible-sap-hana-deploy/setup/html/media
+              destination: /setup
+
+
+  roles:
+          - { role: proliant-server-preconfigure-local } # role::physical-server-preconfigure-local
+          - { role: sap-hana-preconfigure-local }        # role::sap-hana-preconfigure-local
+          - { role: sap-hana-security-hardening }        # role::sap-hana-security-hardening
+          - { role: sap-hana-deploy }                    # role::sap-hana-deploy
+          - { role: sap-hana-replication }               # role::sap-hana-replication
+          - { role: oneview-config }                     # role::oneview-config

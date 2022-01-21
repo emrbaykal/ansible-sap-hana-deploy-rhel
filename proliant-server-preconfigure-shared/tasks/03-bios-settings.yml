@@ -1,0 +1,30 @@
+# Configure Server BIOS
+
+- name: ILO REST POST BIOS CONFIG
+  uri:
+    url: "https://{{ server_hardware_ilo_ip }}/redfish/v1/Systems/1/bios/settings/"
+    method: POST
+    return_content: yes
+    body: "{\"Attributes\": {\"WorkloadProfile\": \"GeneralPeakFrequencyCompute\",\"AsrStatus\": \"Disabled\" , \"ProcHyperthreading\": \"Enabled\", \"ProcX2Apic\": \"Disabled\", \"AdvancedMemProtection\": \"FastFaultTolerantADDDC\", \"ProcVirtualization\": \"Disabled\", \"IntelProcVtd\": \"Disabled\", \"Sriov\": \"Disabled\", \"BootMode\": \"Uefi\", \"MinProcIdlePkgState\": \"C6Retention\", \"MinProcIdlePower\": \"C6\", \"EnergyPerfBias\": \"MaxPerf\", \"SubNumaClustering\": \"Disabled\", \"HwPrefetcher\": \"Enabled\", \"SecureBootCurrentState\": \"False\", \"SecureBootEnable\": \"False\", \"FanFailPolicy\": \"Allow\", \"RedundantPowerSupply\": \"BalancedMode\" }}"
+    body_format: json
+    validate_certs: no
+    user: "{{ server_hardware_username }}"
+    password: "{{ server_hardware_password }}"
+    force_basic_auth: yes
+    status_code: 200
+  delegate_to: localhost
+
+
+- name: ILO REST POST Rebbot Server
+  uri:
+    url: "https://{{ server_hardware_ilo_ip }}/redfish/v1/Systems/1/Actions/ComputerSystem.Reset"
+    method: POST
+    return_content: yes
+    body: "{\"ResetType\": \"ForceRestart\"}"
+    body_format: json
+    validate_certs: no
+    user: "{{ server_hardware_username }}"
+    password: "{{ server_hardware_password }}"
+    force_basic_auth: yes
+    status_code: 200
+  delegate_to: localhost

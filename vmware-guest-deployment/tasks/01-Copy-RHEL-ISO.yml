@@ -1,0 +1,27 @@
+---
+
+  - name: Create a directory on a datastore
+    vsphere_file:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: no
+      datacenter: "{{ datacenter }}"
+      datastore: "{{ os_disc_datastore }}"
+      path: "{{ datastore_iso_directory }}"
+      state: directory
+    run_once: True
+    delegate_to: localhost
+
+  - name: Copy RHEL Installation Media to the Datastore
+    vsphere_copy:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: no
+      src: "{{ hana_deployment.source }}/{{ installation_media }}"
+      datacenter: "{{ datacenter }}"
+      datastore: "{{ os_disc_datastore }}"
+      path: "{{ datastore_iso_directory }}/{{ installation_media }}"
+    run_once: True
+    delegate_to: localhost

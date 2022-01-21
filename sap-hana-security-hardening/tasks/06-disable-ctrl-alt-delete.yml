@@ -1,0 +1,15 @@
+---
+
+- name: Disable Ctrl-Alt-Del
+  command: systemctl mask ctrl-alt-del.target
+
+- name: Completely Remove ctrl+alt-del functions
+  replace:
+    dest=/etc/systemd/system.conf
+    regexp='^#CtrlAltDelBurstAction='
+    replace='CtrlAltDelBurstAction=none'
+  register: systemd
+
+- name: Reload systemctl daemon Reload
+  command: systemctl daemon-reexec
+  when: systemd.changed
