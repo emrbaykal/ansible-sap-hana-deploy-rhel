@@ -1,0 +1,25 @@
+---
+
+- name: Modify login definitions according to corporate security policies
+  replace:
+    dest=/etc/login.defs
+    regexp="{{ item.pname }}"
+    replace="{{ item.value }}"
+  with_items:
+    - { pname: '^PASS_MAX_DAYS(\s+.*)?$', value: 'PASS_MAX_DAYS 270'}
+    - { pname: '^PASS_MIN_DAYS(\s+.*)?$', value: 'PASS_MIN_DAYS 7'}
+    - { pname: '^PASS_WARN_AGE(\s+.*)?$', value: 'PASS_WARN_AGE 30'}
+
+- name: Set default inactive time to 45 Minutes
+  blockinfile:
+    path: /etc/profile.d/timeout.sh
+    create: yes
+    marker: "## {mark} added by ansible (Add Timeout Parameter)"
+    content: |
+             #
+             # Timeout in seconds till the bash session is terminated
+             # in case of inactivity.
+             # 45min = 2700 sec
+             TMOUT=2700
+             readonly TMOUT
+             export TMOUT

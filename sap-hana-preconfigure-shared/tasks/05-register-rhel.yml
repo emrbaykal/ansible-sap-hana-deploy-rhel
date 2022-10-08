@@ -1,0 +1,109 @@
+---
+
+  - name: Subscription Pre-Registration
+    shell: "subscription-manager status | grep Unknown | wc -l"
+    changed_when: False
+    register: subscription
+
+  - name: Satellite Subscription
+    block:
+
+    - name: Check connectivity https://{{ sat_fqdn }} and it returns a status 200
+      uri:
+        url: https://{{ sat_fqdn }}
+        validate_certs: no
+        status_code: 200
+
+    - name: Download bootstrap.py
+      get_url:
+        url: http://{{ sat_fqdn }}/pub/bootstrap.py
+        dest: /root/bootstrap.py
+        mode: 0755
+
+    - name: Register Servers To the satellite Prod Host Group
+      shell: /usr/libexec/platform-python bootstrap.py -l {{ sat_user }} -p {{ sat_passwd }} -s {{ sat_fqdn }} -o {{ sat_org }} -L {{ sat_loc }} -g "{{ sat_host_grp }}" -a "{{ sat_act_key }}" -f --skip-puppet
+      no_log: true
+      ignore_errors: true
+
+    - name: Applying the RHEL release lock
+      shell: |
+          rm -rf /var/cache/dnf
+
+          subscription-manager release --set={{ rhel_rlease }}
+
+    - name: Check Release Lock Setting
+      shell: subscription-manager release --show
+      register: release
+
+    - name: Rlease Lock Setting Status
+      debug:
+        msg: "{{ release.stdout_lines }}"
+
+    - name: Enabling required repositories
+      shell: |
+          subscription-manager repos --disable="*"
+
+          subscription-manager repos \
+          --enable="rhel-8-for-$(uname -m)-baseos-e4s-rpms" \
+          --enable="rhel-8-for-$(uname -m)-appstream-e4s-rpms" \
+          --enable="rhel-8-for-$(uname -m)-sap-solutions-e4s-rpms" \
+          --enable="rhel-8-for-$(uname -m)-sap-netweaver-e4s-rpms"
+
+    - name: Check Registered Repository status
+      shell: subscription-manager repos --list-enabled
+      register: subs_status
+
+    - name: Subscribed Repos Status
+      debug:
+        msg: "{{ subs_status.stdout_lines }}"
+
+    when:
+      - subscription.stdout|int >= 1
+      - sat_fqdn|default
+
+  - name: RHN Subscription
+    block:
+
+    #- name: Check connectivity https://access.redhat.com and it returns a status 200
+    #  uri:
+    #    url: https://access.redhat.com
+    #    status_code: 200
+
+    - name: Register Servers To the access.redhat.com site
+      shell: subscription-manager register --org={{ rhn_org_id }} --activationkey={{ rhn_act_key }}
+
+    - name: Applying the RHEL release lock
+      shell: |
+          rm -rf /var/cache/dnf
+
+          subscription-manager release --set={{ rhel_rlease }}
+
+    - name: Check Release Lock Setting
+      shell: subscription-manager release --show
+      register: release
+
+    - name: Rlease Lock Setting Status
+      debug:
+        msg: "{{ release.stdout_lines }}"
+
+    - name: Enabling required repositories
+      shell: |
+          subscription-manager repos --disable="*"
+
+          subscription-manager repos \
+          --enable="rhel-8-for-$(uname -m)-baseos-e4s-rpms" \
+          --enable="rhel-8-for-$(uname -m)-appstream-e4s-rpms" \
+          --enable="rhel-8-for-$(uname -m)-sap-solutions-e4s-rpms" \
+          --enable="rhel-8-for-$(uname -m)-sap-netweaver-e4s-rpms"
+
+    - name: Check Registered Repository status
+      shell: subscription-manager repos --list-enabled
+      register: subs_status
+
+    - name: Subscribed Repos Status
+      debug:
+        msg: "{{ subs_status.stdout_lines }}"
+
+    when:
+     - subscription.stdout|int >= 1
+     - rhn_org_id|default

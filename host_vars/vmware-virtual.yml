@@ -1,0 +1,124 @@
+---
+
+  # Persistent Memory Configuration
+  # If Persistent Memory  defined
+  # You can enable this feature (true/false)
+  pmem: false
+
+  #### ESXI Guest Based Variables ####
+  # Destination Hypervisor
+  esxi_hostname: esxi-hostname
+  # ESXI Guest Name
+  guest_name: guesthostname
+  # Guest Memory
+  memory_mb: 8192
+  # Number of Total CPU
+  num_cpus: 8
+  # CPU Cores Per Socket
+  num_cpu_cores_per_socket: 4
+  # Public Network Interface
+  network: "VM Network"
+  # Replication Network Interface
+  rep_network: "cluster"
+  # ESXI Guest Folder "Datacenter/vm"
+  guest_folder: Datacenter/vm
+  # ESXI Datacenter
+  datacenter: Datacenter
+  # Location Of SUSE Installation image
+  iso_path: "[DS01] ISO/SLE-15-SP2-SAP-x86_64_Custom-DVD.iso"
+  # Operating System Disc Size
+  os_disc_size_gb: 146
+  # Operating System Disk Datastore
+  os_disc_datastore: DS01
+
+  # SAP Hana Storage Parameters
+  # /hana/data Storage size
+  hana_data_size_gb: 186
+  # /hana/data Storage Datastore
+  hana_data_datastore: DS01
+  # /hana/log Storage size
+  hana_log_size_gb: 186
+  # /hana/log Storage Datastore
+  hana_log_datastore: DS01
+  # /hana/shared Storage size
+  hana_shared_size_gb: 186
+  # /hana/share Datastore
+  hana_shared_datastore: DS01
+  # /usr/sap Storage size
+  hana_usr_sap_size_gb: 102
+  # /usr/sap Storage Datastore
+  hana_usr_sap_datastore: DS01
+
+  #### Host Based Variables ####
+  # SUSE Connect subscribe  variables
+  regcode: xxxxxxxxxxxxx
+
+  # OS Data Logical Drive
+  OS_Partition: /dev/sda2
+
+
+  # Operating System Logical disk Parameters
+  hana_data_disks:
+      partition: /dev/sdb
+      volume_group: vg_hana_data
+  hana_shared_disks:
+      partition: /dev/sdc
+      volume_group: vg_hana_shared
+  hana_log_disks:
+      partition: /dev/sdd
+      volume_group: vg_hana_log
+  hana_usr_sap_disks:
+      partition: /dev/sde
+      volume_group: vg_hana_usr_sap
+
+  # Operating System Logical disk Parameters
+  hanavols:
+    hana_shared:
+      size: 180G
+      vol: vg_hana_shared
+      lv: lv_hana_shared
+      mountpoint: /hana/shared
+      fs_type: xfs
+    hana_data:
+      size: 180G
+      vol: vg_hana_data
+      lv: lv_hana_data
+      mountpoint: /hana/data
+      fs_type: xfs
+    hana_logs:
+      size: 180G
+      vol: vg_hana_log
+      lv: lv_hana_log
+      mountpoint: /hana/log
+      fs_type: xfs
+    usr_sap:
+      size: 80G
+      vol: vg_hana_usr_sap
+      lv: vg_hana_usr_sap
+      mountpoint: /usr/sap
+      fs_type: xfs
+
+  ### Hana DB Configuration Parameters ###
+  # Components ( Valid values: all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | pos | sal | sca | sop | trd | udf )
+  components: server,client
+  # Action ( Default: exit; Valid values: install | update | extract_components )
+  action: install
+  # SAP HANA System ID (ex: HDB)
+  sid: PED
+  # Instance Number (ex: 00)
+  number: "00"
+  # Database Mode ( Default: single_container; Valid values: single_container | multiple_containers )
+  db_mode: multiple_containers
+  # System Usage ( Default: custom; Valid values: production | test | development | custom )
+  system_usage: production
+  # SAP Host Agent User (sapadm) Password
+  sapadm_password: xxxxxxxx
+  # System Administrator Password
+  system_admin_password: xxxxxx
+  # Database User (SYSTEM) Password
+  system_user_password: xxxxxxx
+  # Restrict maximum memory allocation? ( Default: off; Valid values: off | on )
+  restrict_max_mem: off
+  # Maximum Memory Allocation in MB
+  max_mem: 0
+

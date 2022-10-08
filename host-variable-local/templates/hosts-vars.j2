@@ -1,0 +1,117 @@
+---
+
+  # Proliant Server ILO Info
+  server_hardware_ilo_ip: {{ item.value.ilo_ip }}
+  server_hardware_username: {{ item.value.ilo_user }}
+  server_hardware_password: {{ item.value.ilo_password }}
+
+  # Persistent Memory Configuration
+  # If Persistent Memory  defined
+  # You can enable this feature (true/false)
+  pmem: {{ item.value.pmem_conf }}
+
+  #### Host Based Variables ####
+  # Redhat Satellite Server Information
+  sat_fqdn: {{ item.value.satellite_fqdn }}
+  sat_user: {{ item.value.satellite_user }}
+  sat_passwd: {{ item.value.satellite_password }}
+  sat_org: {{ item.value.satellite_organization }}
+  sat_loc: {{ item.value.satellite_location }}
+  sat_host_grp: {{ item.value.satellite_host_group }}
+  sat_act_key: {{ item.value.satellite_activation_key }}
+
+  # access.redhat.com Information
+  rhn_org_id: {{ item.value.rhn_org_id }}
+  rhn_act_key: {{ item.value.rhn_act_key }}
+  rhel_rlease: {{ item.value.rhel_rlease }}
+
+
+
+  # OS Data Logical Drive
+  OS_LogicalDriveName: OS
+  OS_Raid: {{ item.value.os_disc_raid }}
+  #Set to -1 to use all remaining space for maximum size
+  OS_CapacityGiB: {{ item.value.os_disc_capacity_gb }}
+  OS_Partition: /dev/sda2
+
+  # Hana Logical Drive
+  HANA_LogicalDriveName: HANA
+  HANA_Raid: {{ item.value.hana_disc_raid }}
+  #Set to -1 to use all remaining space for maximum size
+  HANA_CapacityGiB: {{ item.value.hana_disc_capacity }}
+
+  # Operating System Logical disk Parameters
+  hana_disks:
+     partition: /dev/sdb
+     volume_group: vg_hana
+  hanavols:
+    hana_shared:
+      size: {{ item.value.hana_shared_lv_size_gb }}G
+      vol: vg_hana
+      lv: lv_hana_shared
+      mountpoint: /hana/shared
+      fs_type: xfs
+    hana_data:
+      size: {{ item.value.hana_data_lv_size_gb }}G
+      vol: vg_hana
+      lv: lv_hana_data
+      mountpoint: /hana/data
+      fs_type: xfs
+    hana_logs:
+      size: {{ item.value.hana_log_lv_size_gb }}G
+      vol: vg_hana
+      lv: lv_hana_log
+      mountpoint: /hana/log
+      fs_type: xfs
+    usr_sap:
+      size: {{ item.value.usr_sap_lv_size_gb }}G
+      vol: vg_hana
+      lv: lv_hana_usr_sap
+      mountpoint: /usr/sap
+      fs_type: xfs
+
+
+
+  ### Hana DB Configuration Parameters ###
+  # Components ( Valid values: all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | pos | sal | sca | sop | trd | udf )
+  components: server,client
+  # Action ( Default: exit; Valid values: install | update | extract_components )
+  action: install
+  # SAP HANA System ID (ex: HDB)
+  sid: {{ item.value.hana_sid }}
+  # Instance Number (ex: 00)
+  number: "{{ item.value.hana_instance_number }}"
+  # Database Mode ( Default: single_container; Valid values: single_container | multiple_containers )
+  db_mode: multiple_containers
+  # System Usage ( Default: custom; Valid values: production | test | development | custom )
+  system_usage: {{ item.value.system_usage }}
+  # SAP Host Agent User (sapadm) Password
+  sapadm_password: {{ item.value.hana_sapadm_password }}
+  # System Administrator Password
+  system_admin_password: {{ item.value.hana_system_admin_password }}
+  # Database User (SYSTEM) Password
+  system_user_password: {{ item.value.hana_system_user_password }}
+  # Restrict maximum memory allocation? ( Default: off; Valid values: off | on )
+  restrict_max_mem: {{ item.value.restrict_max_mem_allocation }}
+  # Maximum Memory Allocation in MB
+  max_mem: {{ item.value.restrict_max_mem_mb }}
+
+  # Hana DB Replication Configuration Parameters
+  primary_server:
+    hostname: {{ item.value.rep_primary_hostname }}
+    public_ip: {{ item.value.rep_primary_public_ip }}
+    replication_ip: {{ item.value.rep_primary_rep_ip }}
+
+  secondary_server:
+    hostname: {{ item.value.rep_secondary_hostname }}
+    public_ip: {{ item.value.rep_secondary_public_ip }}
+    replication_ip: {{ item.value.rep_secondary_rep_ip }}
+
+  # Replication Type ( sync | syncmem | async )
+  replication_type: {{ item.value.replication_type }}
+
+  # Replication Operation Mode ( logreplay )
+  operation_mode: {{ item.value.rep_operation_mode }}
+
+  # Hana Key Exchange Temporary Storage ( logreplay )
+  sap_hana_hsr_keyexchange_tmp: /home/hpe/ansible/ansible-sap-hana-deploy/hsr_keyexchange_tmp

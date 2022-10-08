@@ -1,0 +1,30 @@
+---
+# tasks file for 06-email-notification
+
+      - name: Configure Email Notification
+        uri:
+          url: "https://{{ oneview_ip }}/rest/appliance/notifications/email-config"
+          headers:
+            Auth: "{{ oneview_auth.json.sessionID }}"
+            X-Api-Version: 1200
+          method: POST
+          return_content: yes
+          body: "{\"alertEmailDisabled\": \"false\",\"alertEmailFilters\":[{\"disabled\": \"false\", \"displayFilter\": \"status:warning status:critical\", \"emails\": [\"{{ usermail }}\"], \"limit\": \"3\", \"limitDuration\": \"minute\", \"filterName\": \"Critical Alerts\"}],\"senderEmailAddress\": \"{{ email_sender }}\", \"smtpPort\": \"25\", \"smtpServer\": \"{{ relayhost }}\", \"smtpProtocol\": \"PLAINTEXT\", \"type\": \"EmailNotificationV3\" }"
+          body_format: json
+          validate_certs: no
+          status_code: 202
+        delegate_to: localhost
+
+      - name: Send test email
+        uri:
+          url: "https://{{ oneview_ip }}/rest/appliance/notifications/test-email"
+          headers:
+            Auth: "{{ oneview_auth.json.sessionID }}"
+            X-Api-Version: 1200
+          method: POST
+          return_content: yes
+          body: "{\"toAddress\": [\"{{ usermail }}\"], \"htmlMessageBody\": \"Oneview Test Email\", \"subject\": \"HPE OneView Test Mail Generated\", \"textMessageBody\": \"Oneview Test Email\", \"type\": \"Email\"}"
+          body_format: json
+          validate_certs: no
+          status_code: 200
+        delegate_to: localhost

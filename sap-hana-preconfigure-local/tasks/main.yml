@@ -1,0 +1,59 @@
+---
+# tasks file for suse-os-preconfigure
+
+  - name: Gathering facts
+    setup:
+    tags:
+      - role::sap-hana-preconfigure-local
+      - role::sap-hana-preconfigure-local::setup
+
+  - import_tasks: 01-configure-hostname.yml
+    tags:
+      - role::sap-hana-preconfigure-local
+      - role::sap-hana-preconfigure-local::hostname
+
+  - import_tasks: 02-configure-issue.yml
+    tags:
+      - role::sap-hana-preconfigure-local
+      - role::sap-hana-preconfigure-local::issue
+
+  - import_tasks: 03-configure-network-time-and-date.yml
+    tags:
+    - role::sap-hana-preconfigure-local
+    - role::sap-hana-preconfigure-local::configure-network-time-and-date
+
+  -  import_tasks: 04-disable-firewalld-and-selinux.yml
+     tags:
+     - role::sap-hana-preconfigure-local
+     - role::sap-hana-preconfigure-local::disable-firewalld-and-selinux
+
+  - import_tasks: 05-register-rhel.yml
+    tags:
+    - role::sap-hana-preconfigure-local
+    - role::sap-hana-preconfigure-local::register-rhel
+
+  - import_tasks: 06-required-packages.yml
+    tags:
+    - role::sap-hana-preconfigure-local
+    - role::sap-hana-preconfigure-local::required-packages
+
+  - import_tasks: 07-update-operating-system.yml
+    tags:
+    - role::sap-hana-preconfigure-local
+    - role::sap-hana-preconfigure-local::update-operating-system
+
+  - import_tasks: 08-sap-hana-filesystem.yml
+    tags:
+    - role::sap-hana-preconfigure-local
+    - role::sap-hana-preconfigure-local::sap-hana-filesystem
+
+  - import_tasks: 09-configuring-system-parameters.yml
+    tags:
+    - role::sap-hana-preconfigure-local
+    - role::sap-hana-preconfigure-local::configuring-system-parameters
+
+  - import_tasks: 10-pmem-config.yml
+    when:  pmem == true
+    tags:
+    - role::sap-hana-preconfigure-local
+    - role::sap-hana-preconfigure-local::pmem-config

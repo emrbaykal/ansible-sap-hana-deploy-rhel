@@ -1,0 +1,15 @@
+---
+
+- name: Ensure aide is installed
+  dnf:
+   name: aide
+   state: present
+
+- name: Configure Periodic Execution of AIDE
+  cron:
+    name: run AIDE check
+    minute: 5
+    hour: 4
+    weekday: 0
+    user: root
+    job: /usr/sbin/aide --check

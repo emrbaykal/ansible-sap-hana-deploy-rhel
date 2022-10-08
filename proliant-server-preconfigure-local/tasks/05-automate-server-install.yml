@@ -1,0 +1,39 @@
+---
+  - name: Sleep for 300 seconds and continue with play
+    wait_for:
+      timeout: 300
+    delegate_to: localhost
+
+  - name: Gathering Local Server facts
+    setup:
+    register: setup_info
+    delegate_to: localhost
+
+  - name: Show Deployment Server IP Address Information
+    debug:
+      msg: "Local Ip Addres is: {{ setup_info.ansible_facts.ansible_default_ipv4.address }}"
+
+  - name: Starting Internal Web Site
+    service:
+      name: apache2
+      state: started
+    become: yes
+    delegate_to: localhost
+
+  - name: Server Powered Off
+    hpilo_boot:
+      host: "{{ server_hardware_ilo_ip }}"
+      login: "{{ server_hardware_username }}"
+      password: "{{ server_hardware_password }}"
+      state: poweroff
+    delegate_to: localhost
+
+  - name: Task to boot a system using an ISO from an HP iLO interface
+    hpilo_boot:
+      host: "{{ server_hardware_ilo_ip }}"
+      login: "{{ server_hardware_username }}"
+      password: "{{ server_hardware_password }}"
+      media: cdrom
+      image: http://{{ setup_info.ansible_facts.ansible_default_ipv4.address }}/media/{{ installation_media }}
+      state: boot_once
+    delegate_to: localhost

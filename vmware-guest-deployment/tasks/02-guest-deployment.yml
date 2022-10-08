@@ -1,0 +1,93 @@
+---
+
+ - name: Create a  single virtual machine on given ESXi hostname
+   vmware_guest:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: no
+      folder: "{{ guest_folder }}"
+      datacenter: "{{ datacenter }}"
+      name: "{{ guest_name }}"
+      state: present
+      guest_id: sles15_64Guest
+      # This is hostname of particular ESXi server on which user wants VM to be deployed
+      esxi_hostname: "{{ esxi_hostname }}"
+      disk:
+      - size_gb: "{{ os_disc_size_gb }}"
+        datastore: "{{ os_disc_datastore }}"
+      cdrom:
+        type: iso
+        iso_path: "{{ iso_path }}"
+        state: present
+      hardware:
+        memory_mb: "{{ memory_mb }}"
+        memory_reservation_lock: true
+        num_cpus: "{{ num_cpus }}"
+        num_cpu_cores_per_socket: "{{ num_cpu_cores_per_socket }}"
+        hotadd_cpu: false
+        hotremove_cpu: false
+        scsi: paravirtual
+        boot_firmware: efi
+      networks:
+      - name: "{{ network }}"
+        device_type: vmxnet3
+      customvalues:
+       - key: "tools.guestlib.enableHostInfo"
+         value: "TRUE"
+       - key: "ethernet1.coalescingScheme"
+         value: "disable"
+       - key: "lat.Sensitivity"
+         value: "normal"
+       - key: "numa.vcpu.followcorespersocket"
+         value: "1"
+   delegate_to: localhost
+   when: not rep_network|default(None)
+   register: deploy_vm
+
+ - name: Create a replicated virtual machine on given ESXi hostname
+   vmware_guest:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: no
+      folder: "{{ guest_folder }}"
+      datacenter: "{{ datacenter }}"
+      name: "{{ guest_name }}"
+      state: present
+      guest_id: rhel8_64Guest
+      # This is hostname of particular ESXi server on which user wants VM to be deployed
+      esxi_hostname: "{{ esxi_hostname }}"
+      disk:
+      - size_gb: "{{ os_disc_size_gb }}"
+        datastore: "{{ os_disc_datastore }}"
+      cdrom:
+        type: iso
+        iso_path: "{{ iso_path }}"
+        state: present
+      hardware:
+        memory_mb: "{{ memory_mb }}"
+        memory_reservation_lock: true
+        num_cpus: "{{ num_cpus }}"
+        num_cpu_cores_per_socket: "{{ num_cpu_cores_per_socket }}"
+        hotadd_cpu: false
+        hotremove_cpu: false
+        scsi: paravirtual
+        boot_firmware: efi
+      networks:
+      - name: "{{ network }}"
+        device_type: vmxnet3
+      - name: "{{ rep_network }}"
+        device_type: vmxnet3
+      customvalues:
+       - key: "tools.guestlib.enableHostInfo"
+         value: "TRUE"
+       - key: "ethernet1.coalescingScheme"
+         value: "disable"
+       - key: "lat.Sensitivity"
+         value: "normal"
+       - key: "numa.vcpu.followcorespersocket"
+         value: "1"
+   delegate_to: localhost
+   when: rep_network|default
+   register: deploy_replicated_vm

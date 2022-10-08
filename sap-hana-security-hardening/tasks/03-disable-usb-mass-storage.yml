@@ -1,0 +1,10 @@
+---
+
+- name: Disable usb-mass storage
+  copy:
+    content: 'install usb-storage /bin/true'
+    dest: /etc/modprobe.d/usb_storage.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: unload_usb-storage

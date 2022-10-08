@@ -1,0 +1,153 @@
+---
+
+  # Persistent Memory Configuration
+  # If Persistent Memory  defined
+  # You can enable this feature (true/false)
+  pmem: {{ item.value.pmem_conf }}
+
+  #### ESXI Guest Based Variables ####
+  # Destination Hypervisor
+  esxi_hostname: {{ item.value.esxi_hostname }}
+  # ESXI Guest Name
+  guest_name: {{ item.value.guest_name }}
+  # Guest Memory
+  memory_mb: {{ item.value.memory_mb }}
+  # Number of Total CPU
+  num_cpus: {{ item.value.num_cpus }}
+  # CPU Cores Per Socket
+  num_cpu_cores_per_socket: {{ item.value.num_cpu_cores_per_socket }}
+  # Public Network Interface
+  network: "{{ item.value.network }}"
+  # Replication Network Interface
+  rep_network: "{{ item.value.rep_network }}"
+  # ESXI Guest Folder "Datacenter/vm"
+  guest_folder: {{ item.value.guest_folder }}
+  # ESXI Datacenter
+  datacenter: {{ item.value.datacenter }}
+  # Location Of SUSE Installation image
+  iso_path: "{{ item.value.iso_path }}"
+  # Operating System Disc Size
+  os_disc_size_gb: {{ item.value.os_disc_size_gb }}
+  # Operating System Disk Datastore
+  os_disc_datastore: {{ item.value.os_disc_datastore }}
+
+  # SAP Hana Storage Parameters
+  # /hana/data Storage size
+  hana_data_size_gb: {{ item.value.hana_data_size_gb }}
+  # /hana/data Storage Datastore
+  hana_data_datastore: {{ item.value.hana_data_datastore }}
+  # /hana/log Storage size
+  hana_log_size_gb: {{ item.value.hana_log_size_gb }}
+  # /hana/log Storage Datastore
+  hana_log_datastore: {{ item.value.hana_log_datastore }}
+  # /hana/shared Storage size
+  hana_shared_size_gb: {{ item.value.hana_shared_size_gb }}
+  # /hana/share Datastore
+  hana_shared_datastore: {{ item.value.hana_shared_datastore }}
+  # /usr/sap Storage size
+  hana_usr_sap_size_gb: {{ item.value.hana_usr_sap_size_gb }}
+  # /usr/sap Storage Datastore
+  hana_usr_sap_datastore: {{ item.value.hana_usr_sap_datastore }}
+
+  #### Host Based Variables ####
+  # Redhat Satellite Server Information
+  sat_fqdn: {{ item.value.satellite_fqdn }}
+  sat_user: {{ item.value.satellite_user }}
+  sat_passwd: {{ item.value.satellite_password }}
+  sat_org: {{ item.value.satellite_organization }}
+  sat_loc: {{ item.value.satellite_location }}
+  sat_host_grp: {{ item.value.satellite_host_group }}
+  sat_act_key: {{ item.value.satellite_activation_key }}
+
+  # access.redhat.com Information
+  rhn_org_id: {{ item.value.rhn_org_id }}
+  rhn_act_key: {{ item.value.rhn_act_key }}
+  rhel_rlease: {{ item.value.rhel_rlease }}
+
+
+  # OS Data Logical Drive
+  OS_Partition: /dev/sda2
+
+  # Operating System Logical disk Parameters
+  hana_data_disks:
+      partition: /dev/sdb
+      volume_group: vg_hana_data
+  hana_shared_disks:
+      partition: /dev/sde
+      volume_group: vg_hana_shared
+  hana_log_disks:
+      partition: /dev/sdd
+      volume_group: vg_hana_log
+  hana_usr_sap_disks:
+      partition: /dev/sdc
+      volume_group: vg_hana_usr_sap
+
+  hanavols:
+    hana_shared:
+      size: {{ item.value.hana_shared_lv_size_gb }}G
+      vol: vg_hana_shared
+      lv: lv_hana_shared
+      mountpoint: /hana/shared
+      fs_type: xfs
+    hana_data:
+      size: {{ item.value.hana_data_lv_size_gb }}G
+      vol: vg_hana_data
+      lv: lv_hana_data
+      mountpoint: /hana/data
+      fs_type: xfs
+    hana_logs:
+      size: {{ item.value.hana_log_lv_size_gb }}G
+      vol: vg_hana_log
+      lv: lv_hana_log
+      mountpoint: /hana/log
+      fs_type: xfs
+    usr_sap:
+      size: {{ item.value.usr_sap_lv_size_gb }}G
+      vol: vg_hana_usr_sap
+      lv: lv_hana_usr_sap
+      mountpoint: /usr/sap
+      fs_type: xfs
+
+  ### Hana DB Configuration Parameters ###
+  # Components ( Valid values: all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | pos | sal | sca | sop | trd | udf )
+  components: server,client
+  # Action ( Default: exit; Valid values: install | update | extract_components )
+  action: install
+  # SAP HANA System ID (ex: HDB)
+  sid: {{ item.value.hana_sid }}
+  # Instance Number (ex: 00)
+  number: "{{ item.value.hana_instance_number }}"
+  # Database Mode ( Default: single_container; Valid values: single_container | multiple_containers )
+  db_mode: multiple_containers
+  # System Usage ( Default: custom; Valid values: production | test | development | custom )
+  system_usage: {{ item.value.system_usage }}
+  # SAP Host Agent User (sapadm) Password
+  sapadm_password: {{ item.value.hana_sapadm_password }}
+  # System Administrator Password
+  system_admin_password: {{ item.value.hana_system_admin_password }}
+  # Database User (SYSTEM) Password
+  system_user_password: {{ item.value.hana_system_user_password }}
+  # Restrict maximum memory allocation? ( Default: off; Valid values: off | on )
+  restrict_max_mem: {{ item.value.restrict_max_mem_allocation }}
+  # Maximum Memory Allocation in MB
+  max_mem: {{ item.value.restrict_max_mem_mb }}
+
+  # Hana DB Replication Configuration Parameters
+  primary_server:
+    hostname: {{ item.value.rep_primary_hostname }}
+    public_ip: {{ item.value.rep_primary_public_ip }}
+    replication_ip: {{ item.value.rep_primary_rep_ip }}
+
+  secondary_server:
+    hostname: {{ item.value.rep_secondary_hostname }}
+    public_ip: {{ item.value.rep_secondary_public_ip }}
+    replication_ip: {{ item.value.rep_secondary_rep_ip }}
+
+  # Replication Type ( sync | syncmem | async )
+  replication_type: {{ item.value.replication_type }}
+
+  # Replication Operation Mode ( logreplay )
+  operation_mode: {{ item.value.rep_operation_mode }}
+
+  # Hana Key Exchange Temporary Storage ( logreplay )
+  sap_hana_hsr_keyexchange_tmp: /home/hpe/ansible/ansible-sap-hana-deploy/hsr_keyexchange_tmp

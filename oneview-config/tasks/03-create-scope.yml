@@ -1,0 +1,42 @@
+---
+# tasks file for 03-create-scope
+
+      - name: Create Scope
+        uri:
+          url: "https://{{ oneview_ip }}/rest/scopes"
+          headers:
+            Auth: "{{ oneview_auth.json.sessionID }}"
+            X-Api-Version: 1200
+          method: POST
+          return_content: yes
+          body: "{\"type\": \"ScopeV3\", \"name\": \"SAP-HANA\", \"description\": \"HPE TDI Hana Appliance Scope\" }"
+          body_format: json
+          validate_certs: no
+          status_code: 202
+        register: create_scope
+        delegate_to: localhost
+
+
+      - name: Create Scope Task Status
+        uri:
+          url: "{{ create_scope.location }}"
+          headers:
+           Auth: "{{ oneview_auth.json.sessionID }}"
+          method: get
+          body: ""
+          body_format: json
+          validate_certs: no
+          status_code: 200
+        register: scope_result
+        until: scope_result.json.percentComplete == 100
+        retries: 240
+        delay: 4
+        delegate_to: localhost
+
+      - name: Show Scope URI
+        debug:
+          msg: "Initial Scope URI is: {{ scope_result.json.associatedResource.resourceUri }}"
+
+      - name: Set Scope URI Fact
+        set_fact:
+         scope_uri: "{{ scope_result.json.associatedResource.resourceUri }}"

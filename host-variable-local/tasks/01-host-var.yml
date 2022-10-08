@@ -1,0 +1,22 @@
+---
+
+    - read_csv:
+        path: /home/hpe/ansible/ansible-sap-hana-deploy/host-vms-csv/vms-local-storage.csv
+        key: hostname
+      register: vms
+      #      delegate_to: localhost
+
+    - debug:
+        msg: "{{ item.key }}:
+              {{ item.value.hostname }},
+              {{ item.value.data_ip }}"
+      loop: "{{ vms.dict|dict2items }}"
+      #  delegate_to: localhost
+
+    - name: Deploy User Variable File
+      template:
+         src: hosts-vars.j2
+         dest: "/home/hpe/ansible/ansible-sap-hana-deploy/host_vars/{{ item.value.hostname }}.yml"
+      loop: "{{ vms.dict|dict2items }}"
+      # delegate_to: localhost
+

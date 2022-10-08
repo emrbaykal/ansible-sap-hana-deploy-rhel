@@ -1,0 +1,98 @@
+---
+
+- name: "Make sure secondary server IP address is in /etc/hosts"
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ primary_server['public_ip'] }} {{ primary_server['hostname'] }}.{{ fqdn }} {{ primary_server['hostname'] }}"
+    state: present
+
+- name: get system-replication state
+  shell: |
+    su - "{{ sid|lower }}adm" -c 'python  /usr/sap/{{ sid }}/HDB{{ number }}/exe/python_support/systemReplicationStatus.py'
+  register: srstate_secondary
+  changed_when: false
+  failed_when: ( srstate_secondary.rc < 10 ) or ( srstate_secondary.rc > 15 )
+
+- name: debug
+  debug:
+    msg: "{{ srstate_secondary.stdout_lines|first }}"
+
+- name: Secondary System Replication
+  block:
+   - name: Stop HANA DB on slave node
+     command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB stop"
+     become: yes
+     become_user: "{{ sid | lower }}adm"
+     register: slave_stop_db
+
+   - name: Slave DB Service Result
+     debug:
+       var: slave_stop_db.stdout_lines
+
+   - name: "/hana/shared/{{ sid }}/global/hdb/custom/config/global.ini"
+     blockinfile:
+       path: "/hana/shared/{{ sid }}/global/hdb/custom/config/global.ini"
+       marker: "## {mark} added by ansible (configuration global.ini)"
+       block: |
+         [communication]
+         listeninterface = .global
+
+         [system_replication_communication]
+         listeninterface = .internal
+
+         [system_replication_hostname_resolution]
+         {{ primary_server['replication_ip'] }} = {{ primary_server['hostname'] }}
+         {{ secondary_server['replication_ip'] }} = {{ secondary_server['hostname'] }}
+
+   - name: Perform Backup Certification Files on Slave node
+     command: cp -r /usr/sap/{{ sid }}/SYS/global/security/rsecssfs/{{ item }} /setup
+     with_items:
+      - "data/SSFS_{{ sid }}.DAT"
+      - "key/SSFS_{{ sid }}.KEY"
+
+   - name: fetch the remote data
+     fetch:
+       src: /usr/sap/{{ sid }}/SYS/global/security/rsecssfs/data/SSFS_{{ sid }}.DAT
+       dest: "{{ sap_hana_hsr_keyexchange_tmp }}/SSFS_{{ sid }}.DAT"
+       fail_on_missing: yes
+       flat: yes
+     delegate_to: "{{ primary_server['hostname'] }}"
+
+
+   - name: fetch the remote key
+     fetch:
+       src: /usr/sap/{{ sid }}/SYS/global/security/rsecssfs/key/SSFS_{{ sid }}.KEY
+       dest: "{{ sap_hana_hsr_keyexchange_tmp }}/SSFS_{{ sid }}.KEY"
+       fail_on_missing: yes
+       flat: yes
+     delegate_to: "{{ primary_server['hostname'] }}"
+
+   - name: push datfile to secondary hosts
+     copy:
+       src: "{{ sap_hana_hsr_keyexchange_tmp }}/SSFS_{{ sid }}.DAT"
+       dest: /usr/sap/{{ sid }}/SYS/global/security/rsecssfs/data/SSFS_{{ sid }}.DAT
+       owner: "{{ sid | lower }}adm"
+       group: sapsys
+       mode: 0644
+
+   - name: push keyfile to secondary hosts
+     copy:
+       src: "{{ sap_hana_hsr_keyexchange_tmp }}/SSFS_{{ sid }}.KEY"
+       dest: /usr/sap/{{ sid }}/SYS/global/security/rsecssfs/key/SSFS_{{ sid }}.KEY
+       owner: "{{ sid | lower }}adm"
+       group: sapsys
+       mode: 0644
+
+   - name: Cleanup Temporary remote data
+     file:
+       path: "{{ sap_hana_hsr_keyexchange_tmp }}/SSFS_{{ sid }}.DAT"
+       state: absent
+     delegate_to: localhost
+
+   - name: Cleanup Temporary remote key
+     file:
+       path: "{{ sap_hana_hsr_keyexchange_tmp }}/SSFS_{{ sid }}.KEY"
+       state: absent
+     delegate_to: localhost
+
+  when: srstate_secondary.stdout_lines|first == "this system is not a system replication site"
