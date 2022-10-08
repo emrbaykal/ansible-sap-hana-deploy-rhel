@@ -1,4 +1,0 @@
----
-
-   - name: "To set maximum number of day {{ sid | lower }}adm"
-     shell: "chage -M -1 {{ sid | lower }}adm"

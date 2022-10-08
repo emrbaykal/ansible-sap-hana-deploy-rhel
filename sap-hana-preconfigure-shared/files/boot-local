@@ -1,3 +1,0 @@
-# This file was modified by Ansible
-cpupower set -b 0
-echo 0 > /sys/kernel/mm/ksm/run

@@ -1,8 +1,0 @@
----
-# handlers file for saphana-deploy
-
-  - name: start_saphostagent
-    command: "{{item}}"
-    with_items:
-    - systemctl start sapinit
-    - systemctl enable sapinit
