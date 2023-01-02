@@ -1,0 +1,64 @@
+---
+
+    - name: Start And Enable Firewalld Service 
+      service:
+        name: firewalld
+        enabled: yes
+        state: started
+
+    - name: Configure The Rule Sets Using /etc/sysconfig/hana-firewall
+      replace:
+       dest=/etc/sysconfig/hana-firewall
+       regexp="^HANA_INSTANCE_NUMBERS=(.*)?$"
+       replace='HANA_INSTANCE_NUMBERS="{{ number }}"'
+
+    - name: Creates XML files containing firewall rules for SAP HANA
+      command: hana-firewall generate-firewalld-services
+
+    - name: Restart firewalld Services
+      service:
+        name: firewalld
+        state: restarted
+
+    - name: Add SAP Hana Firewall Rules
+      firewalld:
+        service: "{{ item }}"
+        zone: public
+        permanent: yes
+        immediate: yes
+        state: enabled
+      with_items:
+       - dhcpv6-client
+       - hana-cockpit
+       - hana-data-provisioning
+       - hana-database-client
+       - hana-http-web-access
+       - hana-internal-distributed-communication
+       - hana-internal-system-replication
+       - hana-lifecycle-manager
+       - sap-software-provisioning-manager
+       - sap-special-support
+       - ssh
+
+    - name: Assign Internal Interface to trusted zone
+      firewalld:
+        zone: trusted
+        interface: "{{ rep_interface }}"
+        permanent: yes
+        immediate: yes
+        state: enabled
+      when: rep_interface|default
+
+    - name: Assign Data Interface to public zone
+      firewalld:
+        zone: public
+        interface: "{{ data_interface }}"
+        permanent: yes
+        immediate: yes
+        state: enabled
+
+    - name: Restart firewalld Services
+      service:
+        name: firewalld
+        state: restarted
+

@@ -9,8 +9,6 @@
       filter = [ "a|^{{ OS_Partition }}$|", "a|^{{ hana_data_disks.partition }}$|" ,"a|^{{ hana_shared_disks.partition }}$|" ,"a|^{{ hana_log_disks.partition }}$|" ,"a|^{{ hana_usr_sap_disks.partition }}$|" ,"r|.*/|" ]
     insertbefore: "\t# Configuration option devices/types."
   register: lvm
-  when:
-    - multipath == true
 
 - name: Run dracut -f --verbose command to generate initramfs
   command: dracut -f --verbose

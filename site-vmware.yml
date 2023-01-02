@@ -7,54 +7,67 @@
 
 
 - hosts: hana
-  serial: 2
+  serial: 4
   remote_user: root
   gather_facts: no
 
   vars:
-          installation_media: RHEL8-2-SAP-x86_64_Custom-DVD.iso
+          installation_media: rhel8-6-Custom.iso
+          iso_datastore: SVT_DS01
           datastore_iso_directory: ISO
 
-          # Virtualization Environment simplivity / legacy
-          virt_env: simplivity
+          # HANA Operating System Firewall / ture Or false
+          firewall: false
+
+          # Two Factor Authentication
+          two_way_auth: true
+          pam_module: google-authenticator-libpam-1.09-15.2.x86_64.rpm
 
           # Vmware Virtual Center Credentails
-          vcenter_hostname: 10.205.77.34
+          vcenter_hostname: 10.254.254.6
           vcenter_username: administrator@vsphere.local
-          vcenter_password: xxxxxxxxxxxx
+          vcenter_password: XXXXXXXX
 
           # Sap Servers Hostname / IP Informations
-          fqdn: test.dom
+          fqdn: hpetrlab.local
 
           # Mail Relay Host / Admin Mail Address
-          relayhost: 10.205.77.53
-          recipientmail: emre.baykal@hpe.com
-          sendermail: test@hpe.com
+          relayhost: 10.254.254.10
+          recipientmail: emre.baykal@hpetrlab.local
+          sendermail: sap@hpetrlab.local
+          mail_domain: hpetrlab.local
 
-          # Remote Sys Log Server
-          rsys_log_srv: 10.205.77.51
+          # Remote Sys Log Server // Keep Blank if not rsyslog server desired
+          rsys_log_srv: 10.254.254.10
           rsys_log_srv_port: 514
 
           # Time Sync Parameters
           ntp_servers:
-               hostname: 10.205.77.51
-               #hostname: 1.rhel.pool.ntp.org
+            - 10.254.254.10
+            - 10.254.254.11
 
           # HPE Oneview Config Parameters
-          oneview_ip: 10.205.77.52
+          oneview_ip: XXX.XXX.XXX.XXX
           oneview_username: administrator
-          oneview_password: xxxxxxxx
-          email_sender: server@test.dom
+          oneview_password: xxxxxxxxxx
+          email_sender: server@hpe.com
 
+          # Hana StoreOnce Catalyst Plug In Config
+          catalyst_plugin: HPE_StoreOnce_Catalyst_Plug_in_2.2.0_for_SAP_HANA_Linux_EH991-91007.tar.gz
+          storeonce_ip: 10.254.254.201
+          storeonce_username: Admin
+          storeonce_password: XXXXXX
+          catalyst_client_password: XXXXX
+          storeonce_config: true
 
           # Hana Installation files
           hana_deployment:
-              server: IMDB_SERVER20_055_0-80002031.SAR
-              client: IMDB_CLIENT20_008_16-80002082.SAR
-              sapcar: SAPCAR_1324-80000935.EXE
-              hostagent: saphostagentrpm_51-20009394.rpm
+              server: IMDB_SERVER20_063_0-80002031.SAR
+              client: IMDB_CLIENT20_013_22-80002082.SAR
+              sapcar: SAPCAR_1115-70006178.EXE
+              hostagent: saphostagentrpm_57-80004822.rpm
               spp: P26228_001_spp-2019.12.0-SPP2019120.2019_1209.4.iso
-              source: /home/hpe/ansible/ansible-sap-hana-deploy/setup/html/media
+              source: /home/hpe/ansible/ansible-sap-hana-deploy-rhel/setup/html/media
               destination: /setup
 
 
@@ -64,4 +77,6 @@
           - { role: sap-hana-security-hardening }     # role::sap-hana-security-hardening
           - { role: sap-hana-deploy }                 # role::sap-hana-deploy
           - { role: sap-hana-replication }            # role::sap-hana-replication
+          - { role: sap-hana-storeonce-backup }       # role::sap-hana-storeonce-backup
+          - { role: sap-hana-mfa }                    # role::sap-hana-mfa
           - { role: oneview-config }                  # role::oneview-config

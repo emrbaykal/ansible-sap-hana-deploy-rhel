@@ -1,0 +1,16 @@
+---
+# tasks file for sap-hana-mfa
+
+  - name: Gathering facts
+    setup:
+    tags:
+      - role::sap-hana-mfa
+      - role::sap-hana-mfa::setup
+
+
+  - import_tasks: 01-mfa.yml
+    when: two_way_auth == true
+    tags:
+      - role::sap-hana-mfa
+      - role::sap-hana-mfa::mfa
+

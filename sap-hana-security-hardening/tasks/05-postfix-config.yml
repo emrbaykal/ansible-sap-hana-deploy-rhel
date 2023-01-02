@@ -28,8 +28,8 @@
 - name: Change Root's Email
   replace:
     dest: /etc/aliases
-    regexp: "^#relayhost\s=\s[gateway.my.domain]"
-    replace: "relayhost = [relay.turktelekom.com.tr]:587"
+    regexp: "^#root+(.*)?$"
+    replace: "root:  {{ recipientmail }}"
   notify:
     - newaliases
     - postfix
@@ -46,3 +46,4 @@
     name: postfix
     state: started
     enabled: yes
+

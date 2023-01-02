@@ -1,6 +1,8 @@
 ---
 
- - name: Install yum utils package
+ - name: Install Required Packages
    dnf:
      name: "{{ sap_required_packages }}"
      state: present
+
+

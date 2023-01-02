@@ -31,6 +31,7 @@
         delay: 4
         delegate_to: localhost
 
+
       - name: Add Scope resources
         uri:
           url: "https://{{ oneview_ip }}/rest/scopes/resources/{{ add_server_hw_result.json.associatedResource.resourceUri }}"
@@ -46,5 +47,3 @@
           status_code: 202
         register: add_scope_resource
         delegate_to: localhost
-
-

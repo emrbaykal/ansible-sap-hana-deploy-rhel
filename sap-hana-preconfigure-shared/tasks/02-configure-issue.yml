@@ -16,3 +16,6 @@
     mode=0644
     backup=yes
   notify: restart_ssh_client
+
+- name: Force all notified SSHD services
+  meta: flush_handlers

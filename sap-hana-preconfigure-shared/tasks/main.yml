@@ -20,9 +20,9 @@
   - import_tasks: 03-configure-network-time-and-date.yml
     tags:
     - role::sap-hana-preconfigure-shared
-    - role::sap-hana-preconfigure-shared::configure-network-time-and-date
+    - role::sap-hana-preconfigure-shared::date-time
 
-  -  import_tasks: 04-disable-firewalld-and-selinux.yml
+  -  import_tasks:  04-disable-firewalld-and-selinux.yml
      tags:
      - role::sap-hana-preconfigure-shared
      - role::sap-hana-preconfigure-shared::disable-firewalld-and-selinux

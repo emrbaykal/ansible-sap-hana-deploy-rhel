@@ -1,22 +1,27 @@
 ---
 # tasks file for vmware-guest-deployment
 
- - import_tasks: 01-Copy-SUSE-ISO.yml
+ - import_tasks: 01-Copy-RHEL-ISO.yml
    tags:
       - role::vmware-guest-deployment
-      - role::mware-guest-deployment::Copy-SUSE-ISO
+      - role::mware-guest-deployment::Copy-RHEL-ISO
 
- - import_tasks: 02-guest-deployment.yml
+ - import_tasks: 02-query-virtual-guest.yml
+   tags:
+     - role::vmware-guest-deployment
+     - role::vmware-guest-deployment::query-virtual-guest
+
+ - import_tasks: 03-guest-deployment.yml
    tags:
       - role::vmware-guest-deployment
       - role::mware-guest-deployment::guest-deploy
 
- - import_tasks: 03-add-disk-to-virtual-guest.yml
+ - import_tasks: 04-add-disk-to-virtual-guest.yml
    tags:
       - role::vmware-guest-deployment
       - role::mware-guest-deployment::add-disk
 
- - import_tasks: 04-poweron-virtual-guest.yml
+ - import_tasks: 05-poweron-virtual-guest.yml
    tags:
       - role::vmware-guest-deployment
       - role::mware-guest-deployment::poweron-virtual-guest

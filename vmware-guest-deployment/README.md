@@ -1,44 +1,38 @@
-Role Name: vmware-guest-Deployment
+Role Name
 =========
 
-**When this role is called, Vmware Guest settings are made in accordance with the SAP Hana application.**
+A brief description of the role goes here.
 
+Requirements
+------------
 
- This role import following yaml files:
+Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
 
- - Import 01-Copy-SUSE-ISO.yml
-   - Copying operating system installation file to the vmware datastore.
- - Import 02-guest-deployment.yml
-   - Virtual server deployment is being performed.
- - Improt 03-add-disk-to-virtual-guest.yml
-   - Hana database disks are assigned to the deployed virtual server.
- - Import 04-poweron-virtual-guest.yml
-   - Virtual guests are powered on.
+Role Variables
+--------------
 
-   Main Playbook
-   ----------------
+A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
 
-```yaml
-  ---
-  # tasks file for vmware-guest-deployment
+Dependencies
+------------
 
-   - import_tasks: 01-Copy-SUSE-ISO.yml
-     tags:
-        - role::vmware-guest-deployment
-        - role::mware-guest-deployment::Copy-SUSE-ISO
+A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
 
-   - import_tasks: 02-guest-deployment.yml
-     tags:
-        - role::vmware-guest-deployment
-        - role::mware-guest-deployment::guest-deploy
+Example Playbook
+----------------
 
-   - import_tasks: 03-add-disk-to-virtual-guest.yml
-     tags:
-        - role::vmware-guest-deployment
-        - role::mware-guest-deployment::add-disk
+Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
-   - import_tasks: 04-poweron-virtual-guest.yml
-     tags:
-        - role::vmware-guest-deployment
-        - role::mware-guest-deployment::poweron-virtual-guest
-```
+    - hosts: servers
+      roles:
+         - { role: username.rolename, x: 42 }
+
+License
+-------
+
+BSD
+
+Author Information
+------------------
+
+An optional section for the role authors to include contact information, or a website (HTML is not allowed).

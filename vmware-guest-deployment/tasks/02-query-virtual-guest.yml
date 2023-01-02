@@ -1,0 +1,20 @@
+---
+
+     - name: Gather some info from a guest using the vSphere API output schema
+       vmware_vm_info:
+         hostname: "{{ vcenter_hostname }}"
+         username: "{{ vcenter_username }}"
+         password: "{{ vcenter_password }}"
+         validate_certs: no
+         vm_type: vm
+       delegate_to: localhost
+       register: vm_info
+
+     - name: Search Virtual Machine
+       debug:
+          msg: "Desired Virtual Machine Did Not Detected"
+       when: vm_info.virtual_machines|json_query(query)|length == 0
+       vars:
+               #ddvm_name: 'lxhana02'
+         query: "[?guest_name=='{{ guest_name }}'].uuid"
+

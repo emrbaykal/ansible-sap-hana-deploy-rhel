@@ -1,0 +1,10 @@
+---
+
+   - name: Disable usb-mass storage
+     copy:
+       content: 'blacklist usb-storage'
+       dest: /etc/modprobe.d/60-blacklist_fs-usb.conf
+       owner: root
+       group: root
+       mode: '0644'
+     notify: rebuild_initramfs

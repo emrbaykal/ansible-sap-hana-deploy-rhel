@@ -1,4 +1,6 @@
 ---
+- name: Disable Ctrl-Alt-Del Service
+  command: systemctl disable ctrl-alt-del.target
 
 - name: Disable Ctrl-Alt-Del
   command: systemctl mask ctrl-alt-del.target
@@ -13,3 +15,4 @@
 - name: Reload systemctl daemon Reload
   command: systemctl daemon-reexec
   when: systemd.changed
+

@@ -26,3 +26,4 @@
    - { pname: 'fs.inotify.max_user_watches', value: '65536'}
    - { pname: 'net.ipv4.conf.default.promote_secondaries', value: '1'}
    - { pname: 'net.ipv4.conf.all.promote_secondaries', value: '1'}
+

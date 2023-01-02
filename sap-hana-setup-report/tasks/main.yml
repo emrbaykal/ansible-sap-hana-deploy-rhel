@@ -1,0 +1,13 @@
+---
+# tasks file for sap-hana-setup-report
+
+ - name: Gathering facts
+   setup:
+   tags:
+      - role::sap-hana-setup-report
+      - role::sap-hana-setup-report::setup
+
+ - import_tasks: 01-ssh-client-security.yml
+   tags:
+      - role::sap-hana-security-hardening
+      - role::sap-hana-security-hardening::ssh-client-security

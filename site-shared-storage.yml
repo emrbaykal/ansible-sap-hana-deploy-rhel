@@ -7,50 +7,64 @@
 
 
 - hosts: hana
-  serial: 2
+  serial: 4
   remote_user: root
   gather_facts: no
 
   vars:
-
           # Automate OS Installation
           # If ILO Can access to deployment server via using http protocol
           # You can enable this feature (true/false)
           automate_install: true
-          installation_media: RHEL8-2-SAP-x86_64_Custom-DVD.iso
+          installation_media: SLE-15-SP4-SAP-x86_64-DVD.iso
+
+          # HANA Operating System Firewall / ture Or false
+          firewall: false
+
+          # Two Factor Authentication
+          two_way_auth: false
+          pam_module: google-authenticator-libpam-1.09-15.2.x86_64.rpm
 
           # Sap Servers Hostname / IP Informations
           fqdn: test.dom
 
           # Mail Relay Host / Admin Mail Address
-          relayhost: 10.205.77.53
+          relayhost: XXX.XXX.XXX.XXX
           recipientmail: emre.baykal@hpe.com
           sendermail: test@hpe.com
+          mail_domain: hpe.com
 
-          # Remote Sys Log Server
-          rsys_log_srv: 10.205.77.51
+          # Remote Sys Log Server // Keep Blank if rsyslog server not desired
+          rsys_log_srv: XXX.XXX.XXX.XXX
           rsys_log_srv_port: 514
 
           # Time Sync Parameters
           ntp_servers:
-               hostname: xx.xx.xx.xx
-               #hostname: 1.rhel.pool.ntp.org
+            - XXX.XXX.XXX.XXX
+            - XXX.XXX.XXX.XXX
 
           # HPE Oneview Config Parameters
-          oneview_ip: xx.xx.xx.xx
+          oneview_ip: XXX.XXX.XXX.XXX
           oneview_username: administrator
-          oneview_password: xxxxxxxxxx
+          oneview_password: xxxxxxxxxxxx
           email_sender: server@test.dom
 
+          # Hana StoreOnce Catalyst Plug In Config
+          catalyst_plugin: HPE_StoreOnce_Catalyst_Plug_in_2.2.0_for_SAP_HANA_Linux_EH991-91007.tar.gz
+          storeonce_ip: XXX.XXX.XXX.XXX
+          storeonce_username: Admin
+          storeonce_password: xxxxxxxx
+          catalyst_client_password: xxxxxxxxx
+          storeonce_config: true
 
           # Hana Installation files
           hana_deployment:
-              server: IMDB_SERVER20_055_0-80002031.SAR
-              client: IMDB_CLIENT20_008_16-80002082.SAR
-              sapcar: SAPCAR_1324-80000935.EXE
-              hostagent: saphostagentrpm_51-20009394.rpm
+              server: IMDB_SERVER20_060_0-80002031.SAR
+              client: IMDB_CLIENT20_011_14-80002082.SAR
+              sapcar: SAPCAR_1010-70006178.EXE
+              hostagent: saphostagentrpm_54-80004822.rpm
               spp: P26228_001_spp-2019.12.0-SPP2019120.2019_1209.4.iso
-              source: /home/hpe/ansible/ansible-sap-hana-deploy/setup/html/media
+              source: /home/hpe/ansible/ansible-sap-hana-deploy-rhel/setup/html/media
               destination: /setup
 
 
@@ -60,4 +74,6 @@
           - { role: sap-hana-security-hardening }          # role::sap-hana-security-hardening
           - { role: sap-hana-deploy }                      # role::sap-hana-deploy
           - { role: sap-hana-replication }                 # role::sap-hana-replication
+          - { role: sap-hana-storeonce-backup }            # role::sap-hana-storeonce-backup
+          - { role: sap-hana-mfa }                         # role::sap-hana-mfa
           - { role: oneview-config }                       # role::oneview-config

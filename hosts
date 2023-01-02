@@ -1,1 +1,3 @@
 [hana]
+lxhana03 ansible_host=10.254.254.143
+lxhana04 ansible_host=10.254.254.144

@@ -24,8 +24,6 @@
   guest_folder: {{ item.value.guest_folder }}
   # ESXI Datacenter
   datacenter: {{ item.value.datacenter }}
-  # Location Of SUSE Installation image
-  iso_path: "{{ item.value.iso_path }}"
   # Operating System Disc Size
   os_disc_size_gb: {{ item.value.os_disc_size_gb }}
   # Operating System Disk Datastore
@@ -63,7 +61,7 @@
   rhn_org_id: {{ item.value.rhn_org_id }}
   rhn_act_key: {{ item.value.rhn_act_key }}
   rhel_rlease: {{ item.value.rhel_rlease }}
-
+  
 
   # OS Data Logical Drive
   OS_Partition: /dev/sda2
@@ -80,7 +78,7 @@
       volume_group: vg_hana_log
   hana_usr_sap_disks:
       partition: /dev/sdc
-      volume_group: vg_hana_usr_sap
+      volume_group: vg_hana_usr_sap 
 
   hanavols:
     hana_shared:
@@ -110,7 +108,8 @@
 
   ### Hana DB Configuration Parameters ###
   # Components ( Valid values: all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | pos | sal | sca | sop | trd | udf )
-  components: server,client
+  #components: server,client
+  components: {{ item.value.hana_components }}
   # Action ( Default: exit; Valid values: install | update | extract_components )
   action: install
   # SAP HANA System ID (ex: HDB)
@@ -150,4 +149,5 @@
   operation_mode: {{ item.value.rep_operation_mode }}
 
   # Hana Key Exchange Temporary Storage ( logreplay )
-  sap_hana_hsr_keyexchange_tmp: /home/hpe/ansible/ansible-sap-hana-deploy/hsr_keyexchange_tmp
+  sap_hana_hsr_keyexchange_tmp: /home/hpe/ansible/ansible-sap-hana-deploy-rhel/hsr_keyexchange_tmp
+

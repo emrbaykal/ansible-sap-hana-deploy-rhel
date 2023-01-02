@@ -13,8 +13,9 @@
  - name: Check for reboot hint.
    command: needs-restarting -r
    no_log: true
-   ignore_errors: true
+   #ignore_errors: true
    register: reboot_hint
+   failed_when: reboot_hint.rc >= 2
 
  - name: Rebooting ...
    shell: sleep 2 && /sbin/shutdown -r now "Reboot required for updated kernel"
@@ -30,3 +31,4 @@
      sleep: 15
      delay: 30
    when: rebooting.changed
+

@@ -1,16 +1,13 @@
 ---
   # Proliant Server ILO Info
-  server_hardware_ilo_ip: 10.205.77.222
-  server_hardware_username: hpadmin
+  server_hardware_ilo_ip: 10.205.77.222 
+  server_hardware_username: hpadmin 
   server_hardware_password: HP1nvent
 
   # Persistent Memory Configuration
   # If Persistent Memory  defined
   # You can enable this feature (true/false)
   pmem: false
-
-  # Define Multipath Configuration
-  multipath: true
 
   #### Host Based Variables ####
   # SUSE Connect subscribe  variables
@@ -88,3 +85,4 @@
   restrict_max_mem: off
   # Maximum Memory Allocation in MB
   max_mem: 0
+

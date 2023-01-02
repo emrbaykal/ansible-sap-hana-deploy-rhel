@@ -1,0 +1,70 @@
+---
+
+     - name: Get stats of a Catalyst Plugin Status
+       stat:
+         path: "/hana/shared/{{ sid }}/hpe/HPE-Catalyst-SAP-HANA-Plugin"
+       register: catalyst_file_stat
+
+     - block:
+
+       - name: "Extract StoreOnce Catalyst Plug In into /usr/sap/{{ sid }}/home/"
+         unarchive:
+           src: "{{ hana_deployment['source'] }}/{{ catalyst_plugin }}"
+           dest: "/usr/sap/{{ sid }}/home/"
+           owner: "{{ sid | lower }}adm"
+           group: sapsys
+           mode: 0744
+           list_files: yes
+         register: unarchive
+
+       - name: Installing and configuring the SAP HANA plug-in
+         shell: su - "{{ sid | lower }}adm" -c  "/usr/sap/{{ sid }}/home/{{ unarchive.files[0] }} -i silent"
+         args:
+           executable: /bin/bash
+         register: catalyst_plugin
+         failed_when: catalyst_plugin.rc != 1
+
+
+       - name: "Configure Catalysy Plugin /hana/shared/{{ sid }}/hpe/HPE-Catalyst-SAP-HANA-Plugin/config/plugin.conf file"
+         replace:
+          path: "/hana/shared/{{ sid }}/hpe/HPE-Catalyst-SAP-HANA-Plugin/config/plugin.conf"
+          regexp: "{{ item.regexp }}"
+          replace: "{{ item.replace }}"
+         with_items:
+           - {regexp: '(?i)^#?CATALYST_STORE_ADDRESS:.*', replace: 'CATALYST_STORE_ADDRESS:{{ storeonce_ip }}' }
+           - {regexp: '(?i)^#?CATALYST_STORE_NAME:.*', replace: 'CATALYST_STORE_NAME:HANA-DB-{{ sid }}' }
+           - {regexp: '(?i)^#?CATALYST_CLIENT_NAME:.*', replace: 'CATALYST_CLIENT_NAME:backint-{{ sid | lower }}' }
+           - {regexp: '(?i)^#?CATALYST_CLIENT_PASSWORD:.*', replace: 'CATALYST_CLIENT_PASSWORD:{{ catalyst_client_password }}' }
+       
+       - name: Configure HANA Backint Parameters
+         blockinfile:
+           path: "/hana/shared/{{ sid }}/global/hdb/custom/config/global.ini"
+           marker: "## {mark} added by ansible for StoreOncw Catalyst Plugin Config"
+           block: |
+             [backup]
+             data_backup_parameter_file = /hana/shared/{{ sid }}/hpe/HPE-Catalyst-SAP-HANA-Plugin/config/plugin.conf
+             log_backup_parameter_file = /hana/shared/{{ sid }}/hpe/HPE-Catalyst-SAP-HANA-Plugin/config/plugin.conf
+
+
+       - name: Stop HANA DB 
+         command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB stop"
+         become: yes
+         become_user: "{{ sid | lower }}adm"
+       
+       - name: Start HANA DB  
+         command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB start"
+         become: yes
+         become_user: "{{ sid | lower }}adm"
+
+
+       - name: Execute Backint Test Backup to the StoreOnce Device 
+         community.sap.hana_query:
+           sid: "{{ sid }}"
+           instance: "{{ number }}"
+           password: "{{ system_admin_password }}"
+           host: "{{ ansible_fqdn }}"
+           query: "BACKUP DATA USING BACKINT ('/usr/sap/{{ sid }}/SYS/global/hdb/backint/DB_{{ sid }}/first_backup')"
+         when: secondary_server['hostname'] != inventory_hostname
+
+       when: 
+         - not catalyst_file_stat.stat.exists

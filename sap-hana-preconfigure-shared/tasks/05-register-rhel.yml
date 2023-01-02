@@ -21,7 +21,7 @@
         mode: 0755
 
     - name: Register Servers To the satellite Prod Host Group
-      shell: /usr/libexec/platform-python bootstrap.py -l {{ sat_user }} -p {{ sat_passwd }} -s {{ sat_fqdn }} -o {{ sat_org }} -L {{ sat_loc }} -g "{{ sat_host_grp }}" -a "{{ sat_act_key }}" -f --skip-puppet
+      shell: /usr/libexec/platform-python bootstrap.py -l {{ sat_user }} -p {{ sat_passwd }} -s {{ sat_fqdn }} -o "{{ sat_org }}" -L {{ sat_loc }} -g "{{ sat_host_grp }}" -a "{{ sat_act_key }}" -f
       no_log: true
       ignore_errors: true
 
@@ -30,6 +30,8 @@
           rm -rf /var/cache/dnf
 
           subscription-manager release --set={{ rhel_rlease }}
+      args:
+       warn: false
 
     - name: Check Release Lock Setting
       shell: subscription-manager release --show
@@ -47,7 +49,8 @@
           --enable="rhel-8-for-$(uname -m)-baseos-e4s-rpms" \
           --enable="rhel-8-for-$(uname -m)-appstream-e4s-rpms" \
           --enable="rhel-8-for-$(uname -m)-sap-solutions-e4s-rpms" \
-          --enable="rhel-8-for-$(uname -m)-sap-netweaver-e4s-rpms"
+          --enable="rhel-8-for-$(uname -m)-sap-netweaver-e4s-rpms" \
+          --enable="satellite-tools-6.9-for-rhel-8-$(uname -m)-e4s-rpms" \
 
     - name: Check Registered Repository status
       shell: subscription-manager repos --list-enabled
@@ -107,3 +110,4 @@
     when:
      - subscription.stdout|int >= 1
      - rhn_org_id|default
+

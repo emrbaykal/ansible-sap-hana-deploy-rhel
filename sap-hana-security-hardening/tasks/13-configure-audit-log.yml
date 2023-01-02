@@ -24,3 +24,7 @@
    mode: 0640
    backup: yes
   notify: restart_auditd_service
+
+- name: Flush Auditd Handlers
+  meta: flush_handlers
+

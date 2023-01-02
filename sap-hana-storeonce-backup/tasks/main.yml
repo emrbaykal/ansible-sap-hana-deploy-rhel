@@ -1,0 +1,25 @@
+---
+# tasks file for sap-hana-storeonce-backup
+
+
+- name: Gathering facts
+  setup:
+  tags:
+    - role::sap-hana-storeonce-backup
+    - role::sap-hana-storeonce-backup::setup
+
+
+- import_tasks: 01-catalyststore-config.yml
+  delegate_to: localhost
+  when: storeonce_config == true
+  tags:
+    - role::sap-hana-storeonce-backup
+    - role::sap-hana-storeonce-backup::catalyststore-config
+
+- import_tasks: 02-hana-backint-config.yml
+  when: storeonce_config == true
+  tags:
+    - role::sap-hana-storeonce-backup
+    - role::sap-hana-storeonce-backup::hana-backint-config
+
+

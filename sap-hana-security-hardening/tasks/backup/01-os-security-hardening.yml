@@ -1,0 +1,326 @@
+---
+
+   - name: OpenSSH client security settings
+     replace:
+       dest=/etc/ssh/sshd_config
+       regexp="{{ item.pname }}"
+       replace="{{ item.value }}"
+     with_items:
+       - { pname: '^PermitRootLogin\syes', value: 'PermitRootLogin no'}
+       - { pname: '(?i)^#?PermitEmptyPasswords.*', value: 'PermitEmptyPasswords no'}
+       - { pname: '(?i)^#?IgnoreRhosts.*', value: 'IgnoreRhosts yes'}
+       - { pname: '(?i)^X11Forwarding.*', value: 'X11Forwarding no'}
+       - { pname: '(?i)^#?AllowTcpForwarding.*', value: 'AllowTcpForwarding no'}
+       - { pname: '(?i)^#?MaxAuthTries.*', value: 'MaxAuthTries 4'}
+       - { pname: '(?i)^#?MaxSessions.*', value: 'MaxSessions 8'}
+       - { pname: '(?i)^#?PrintLastLog.*', value: 'PrintLastLog yes'}
+       - { pname: '(?i)^#?PermitUserEnvironment.*', value: 'PermitUserEnvironment no'}
+       - { pname: '(?i)^#?LoginGraceTime.*', value: 'LoginGraceTime 60'}
+
+   - name: Assign SSH Allowed Users
+     lineinfile:
+       path: /etc/ssh/sshd_config
+       line: "{{ item }}"
+     with_items:
+       - 'AllowUsers oper'
+       - 'maxstartups 10:30:60'
+
+   - name: Use Only Strong Ciphers And Mac Hashes
+     blockinfile:
+       path: /etc/ssh/sshd_config
+       marker: "## {mark} added by ansible (Strong Ciphers And Mac Hashes Parameters)"
+       content: |
+                #
+                # Use Storange Ciphers
+                Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+                # Use Strong MAC Hashes
+                MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
+                #Use Strong Kex Algorthims
+                KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group14-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256
+
+   - name: Install SUSE security checker
+     zypper:
+       name: "{{ item }}"
+       state: present
+     with_items:
+      - seccheck
+      - yast2-mail
+
+   - name: Configure mail forwarding for root user
+     template:
+       src: main.j2
+       dest: /etc/postfix/main.cf
+       owner: root
+       group: root
+       mode: 0644
+       backup: yes
+
+   - name: Root User Canonical Map
+     lineinfile:
+       path: /etc/postfix/sender_canonical
+       line: "root {{ sendermail }}"
+     notify: postmap
+
+   - name: Force postmap services
+     meta: flush_handlers
+
+   - name: Change Root's Email
+     replace:
+       dest: /etc/aliases
+       regexp: "^#root+(.*)?$"
+       replace: "root:  {{ recipientmail }}"
+     notify:
+       - newaliases
+       - postfix
+
+   - name: force all notified handlers to run at this point, not waiting for normal sync points
+     meta: flush_handlers
+
+   - name: Test Mail Forwarding
+     shell: '/bin/echo test | mailx -s Test {{ recipientmail }}'
+
+   - name: Enable Monthy Seccheck Reports Service
+     systemd:
+       name: seccheck-monthly.timer
+       state: started
+       enabled: yes
+
+   - name: Enable Automatic Logout Reports Service
+     systemd:
+       name: seccheck-autologout.timer
+       state: started
+       enabled: yes
+
+   - name: Enable Postfix Mail Service
+     systemd:
+       name: postfix
+       state: started
+       enabled: yes
+
+   - name: Disable Ctrl-Alt-Del
+     file:
+       src: /dev/null
+       dest: /etc/systemd/system/ctrl-alt-del.target
+       owner: root
+       group: root
+       state: link
+
+   - name: Implement cron.allow
+     copy:
+       content: |
+                root
+                {{ sid | lower }}adm
+                sapadm
+       dest: /etc/cron.allow
+
+   - name: Implement at.allow
+     file:
+       path: /etc/at.allow
+       owner: root
+       group: root
+       state: touch
+
+   - name: Restrict sudo for normal users
+     replace:
+       dest=/etc/sudoers
+       regexp="{{ item.pname }}"
+       replace="{{ item.value }}"
+     with_items:
+       - { pname: '^ALL\s+ALL=\(ALL\)\s+ALL', value: '#ALL ALL=(ALL) ALL # WARNING! Only use this together with Defaults targetpw !'}
+       - { pname: '^#\s+%wheel\s+ALL=\(ALL\)\s+ALL', value: '%wheel ALL=(ALL) ALL'}
+
+
+   - name: Modify login definitions according to corporate security policies
+     replace:
+       dest=/etc/login.defs
+       regexp="{{ item.pname }}"
+       replace="{{ item.value }}"
+     with_items:
+       - { pname: '^PASS_MAX_DAYS(\s+.*)?$', value: 'PASS_MAX_DAYS 270'}
+       - { pname: '^PASS_MIN_DAYS(\s+.*)?$', value: 'PASS_MIN_DAYS 7'}
+       - { pname: '^PASS_WARN_AGE(\s+.*)?$', value: 'PASS_WARN_AGE 30'}
+
+   - name: Set default inactive time to 6 Hours
+     blockinfile:
+       path: /etc/profile.d/timeout.sh
+       create: yes
+       marker: "## {mark} added by ansible (Add Timeout Parameter)"
+       content: |
+                #
+                # Timeout in seconds till the bash session is terminated
+                # in case of inactivity.
+                # 45min = 2700 sec
+                TMOUT=2700
+                readonly TMOUT
+                export TMOUT
+
+   - name: Create Operator User
+     user:
+       name: oper
+       comment: Operator User
+       groups: wheel
+       password: $6$e7hrfs.O7SdZeMis$RpnhN.aVMYgsJHVQdaJm9./EhoiUPFFLLUZhsAA87zwILwwhKNKyxE/.v6UsFxo9V0XTOBF/eD4pmxFTDiEuG1
+       state: present
+
+   - name: Setup password strengthening for user accounts
+     command: pam-config --add --cracklib-retry=3 --cracklib-minlen=8 --cracklib-lcredit=-1 --cracklib-ucredit=-1 --cracklib-dcredit=-1 --cracklib-ocredit=0 --cracklib-difok=5
+
+
+   - name: Adjust sysctl variables to improve network security
+     sysctl:
+       name="{{ item.pname }}"
+       value="{{ item.value }}"
+       sysctl_set=yes
+       state=present
+       reload=yes
+     with_items:
+      - { pname: 'net.ipv4.conf.default.rp_filter', value: '1'}
+      - { pname: 'net.ipv4.conf.all.rp_filter', value: '1'}
+      - { pname: 'net.ipv4.conf.default.accept_source_route', value: '0'}
+      - { pname: 'net.ipv4.conf.all.accept_source_route', value: '0'}
+      - { pname: 'net.ipv4.tcp_syncookies', value: '1'}
+      - { pname: 'net.ipv4.icmp_echo_ignore_broadcasts', value: '1'}
+      - { pname: 'net.ipv4.icmp_ignore_bogus_error_responses', value: '1'}
+      - { pname: 'net.ipv4.conf.default.secure_redirects', value: '0'}
+      - { pname: 'net.ipv4.conf.all.secure_redirects', value: '0'}
+      - { pname: 'net.ipv4.conf.default.accept_redirects', value: '0'}
+      - { pname: 'net.ipv4.conf.all.accept_redirects', value: '0'}
+      - { pname: 'net.ipv4.tcp_max_syn_backlog', value: '4096'}
+      - { pname: 'net.ipv4.ip_forward', value: '0'}
+      - { pname: 'net.ipv4.conf.default.send_redirects', value: '0'}
+      - { pname: 'net.ipv4.conf.all.send_redirects', value: '0'}
+      - { pname: 'fs.inotify.max_user_watches', value: '65536'}
+      - { pname: 'net.ipv4.conf.default.promote_secondaries', value: '1'}
+      - { pname: 'net.ipv4.conf.all.promote_secondaries', value: '1'}
+
+
+   - name: Ensure that /etc/pam.d/login contains the pam_securetty module in the auth block
+     pamd:
+       name: login
+       type: auth
+       control: requisite
+       module_path: pam_nologin.so
+       new_type: auth
+       new_control: '[user_unknown=ignore success=ok ignore=ignore auth_err=die default=bad]'
+       new_module_path: pam_securetty.so
+       state: after
+
+   - name: Comment Out or Remove all tty's in the file /etc/securetty except of tty1
+     lineinfile:
+       path: /etc/securetty
+       regexp: '^tty[2-6]'
+       state: absent
+
+
+   - name: Modify permissions on certain system files
+     replace:
+       dest=/etc/sysconfig/security
+       regexp="^PERMISSION_SECURITY=(.*)?$"
+       replace='PERMISSION_SECURITY="easy local"'
+     notify: chkstat
+
+   - name: Force security services
+     meta: flush_handlers
+
+   - name: following permission settings to the file /etc/permissions.local
+     blockinfile:
+       path: /etc/permissions.local
+       create: yes
+       marker: "# {mark} HANA Security Hardening"
+       content: |
+                 /etc/at.allow root:root 0400
+                 /etc/bash.bashrc root:root 0444
+                 /etc/csh.cshrc root:root 0444
+                 /etc/csh.login root:root 0444
+                 /etc/shadow root:shadow 0440
+                 /etc/rsyslog.conf root:root 0400
+                 /etc/crontab root:root 0400
+                 /etc/cron.d root:root 0700
+                 /etc/cron.hourly root:root 0700
+                 /etc/cron.daily root:root 0700
+                 /etc/cron.weekly root:root 0700
+                 /etc/cron.monthly root:root 0700
+                 /etc/login.defs root:root 0400
+                 /etc/security/access.conf root:root 0400
+                 /etc/sysctl.conf root:root 0400
+                 /etc/X11/xdm/Xservers root:root 0444
+                 /root root:root 0700
+                 /root/.cshrc root:root 0400
+                 /var/log/boot.log root:root 0640
+                 /var/log/sa root:root 0770
+                 #
+                 # Changing permissions of utmp files would cause the commands
+                 # w, who and last not to work anymore for non-root users
+                 #
+                 # Uncomment these lines, if you are really sure about that
+                 #           /var/run/utmp root:utmp 0600
+                 #           /var/log/wtmp root:utmp 0600
+     notify: chkstat
+
+   - name: Force security services
+     meta: flush_handlers
+
+   - name: Change auditd.conf  Parameters in to /etc/audit/auditd.conf
+     replace:
+         path=/etc/audit/auditd.conf
+         regexp="^{{ item.pname }}"
+         replace="{{ item.value }}"
+     with_items:
+      - { pname: '^log_file\s=\s(.+)$', value: 'log_file = /var/log/audit/audit.log'}
+      - { pname: '^max_log_file\s=\s(.+)$', value: 'max_log_file = 100'}
+      - { pname: '^space_left\s=\s(.+)$', value: 'space_left = 400'}
+      - { pname: '^admin_space_left\s=\s(.+)$', value: 'admin_space_left = 100'}
+      - { pname: '^space_left_action\s=\s(.+)$', value: 'space_left_action = email'}
+      - { pname: '^action_mail_acct\s=\s(.+)$', value: 'action_mail_acct = root'}
+      - { pname: '^admin_space_left_action\s=\s(.+)$', value: 'admin_space_left_action = halt'}
+     notify: restart_auditd_service
+
+   - name: Force auditd services
+     meta: flush_handlers
+
+   - name: deploy auditd.rules file to the clients
+     template:
+       src: audit.j2
+       dest: /etc/audit/rules.d/audit.rules
+       owner: root
+       group: root
+       mode: 0640
+       backup: yes
+     notify: restart_auditd_service
+
+   - name: Force auditd services
+     meta: flush_handlers
+
+   - name: Set rsyslog Parameters in to /etc/rsyslog.d/remote.conf
+     blockinfile:
+        path: /etc/rsyslog.d/remote.conf
+        marker: "## {mark} added by ansible (configuration rsyslog)"
+        content: |
+            $ModLoad imfile
+            $InputFileName /var/log/audit/audit.log
+            $InputFileTag tag_audit_log:
+            $InputFileStateFile audit_log
+            $InputFileSeverity info
+            $InputFileFacility local6
+            $InputRunFileMonitor
+            $template TimeFormat,"%timereported% %HOSTNAME% %syslogtag%%msg%\n"
+            $ActionFileDefaultTemplate TimeFormat
+
+            *.notice;auth.info;authpriv.info;auth.info;local6.*        @@{{ rsys_log_srv }}:{{ rsys_log_srv_port }};TimeFormat
+     notify: restart_rsyslog_service
+     when: rsys_log_srv|default
+
+   - name: Force rsyslog services
+     meta: flush_handlers
+
+   - name: Disable X Windows Startup By Setting Default Target
+     command: systemctl set-default multi-user.target
+
+   - name: Disable usb-mass storage
+     copy:
+       content: 'blacklist usb-storage'
+       dest: /etc/modprobe.d/60-blacklist_fs-usb.conf
+       owner: root
+       group: root
+       mode: '0644'
+     notify: rebuild_initramfs

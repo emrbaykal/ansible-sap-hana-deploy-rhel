@@ -1,0 +1,40 @@
+---
+
+   - name: Configure mail forwarding for root user
+     template:
+       src: main.j2
+       dest: /etc/postfix/main.cf
+       owner: root
+       group: root
+       mode: 0644
+       backup: yes
+
+   - name: Root User Canonical Map
+     lineinfile:
+       path: /etc/postfix/sender_canonical
+       line: "root {{ sendermail }}"
+     notify: postmap
+
+   - name: Force postmap services
+     meta: flush_handlers
+
+   - name: Change Root's Email
+     replace:
+       dest: /etc/aliases
+       regexp: "^#root+(.*)?$"
+       replace: "root:  {{ recipientmail }}"
+     notify:
+       - newaliases
+       - postfix
+
+   - name: force all notified handlers to run at this point, not waiting for normal sync points
+     meta: flush_handlers
+
+   - name: Test Mail Forwarding
+     shell: '/bin/echo test | mailx -s Test {{ recipientmail }}'
+
+   - name: Enable Postfix Mail Service
+     systemd:
+       name: postfix
+       state: started
+       enabled: yes

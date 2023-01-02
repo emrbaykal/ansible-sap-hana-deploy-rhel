@@ -1,0 +1,105 @@
+---
+
+     - name: Copy Google’s PAM
+       copy:
+         src: "{{ hana_deployment['source'] }}/{{ pam_module }}"
+         dest: "/setup"
+         owner: root
+         group: root
+         mode: '0755'
+
+     - name: Install rpm Google's PAM
+       dnf:
+         name: "/setup/{{ pam_module }}"
+         disable_gpg_check: yes
+         state: present
+
+     - name: Configure Google's PAM
+       command:
+         cmd: "google-authenticator -t -d -f --window-size=17 --rate-limit=3 --rate-time=30 --secret=/home/hpe/ansible/ansible-sap-hana-deploy-rhel/google_auth_keyexchange/.google_authenticator --no-confirm"
+       run_once: True
+       delegate_to: localhost
+       register: auth 
+
+     - name:
+       debug:
+         var: auth.stdout_lines
+       run_once: True
+       delegate_to: localhost
+
+     - name: Push certificate files to hosts ROOT user home directory
+       copy:
+         src: "/home/hpe/ansible/ansible-sap-hana-deploy-rhel/google_auth_keyexchange/.google_authenticator"
+         dest: /root/.google_authenticator
+         owner: root
+         group: root
+         mode: 0400
+
+
+     - name: Push certificate files to hosts OPER user home directory
+       copy:
+         src: "/home/hpe/ansible/ansible-sap-hana-deploy-rhel/google_auth_keyexchange/.google_authenticator"
+         dest: /home/oper/.google_authenticator
+         owner: oper
+         group: users
+         mode: 0400
+
+     - name: "Copy MFA for {{ sid | lower }}adm user home directory"
+       copy:
+         src: "/home/hpe/ansible/ansible-sap-hana-deploy-rhel/google_auth_keyexchange/.google_authenticator"
+         dest: "/usr/sap/{{ sid }}/home/.google_authenticator"
+         owner: "{{ sid | lower }}adm"
+         group: sapsys
+         mode: 0400
+
+     - name: Forcing MFA for All Users
+       copy:
+         src: "/home/hpe/ansible/ansible-sap-hana-deploy-rhel/google_auth_keyexchange/.google_authenticator"
+         dest: "/etc/skel/.google_authenticator"
+         owner: root
+         group: root
+         mode: 0400
+
+     - name: Configuring OpenSSH to Use MFA/2FA
+       blockinfile:
+         path: /etc/pam.d/sshd
+         marker: "## {mark} added by ansible (Two Factor Authentication)"
+         content: |
+                  #
+                  # Two Factor Auth
+                  auth required pam_google_authenticator.so nullok
+                  auth required pam_permit.so
+
+     - name: SSH to support this kind of authentication
+       replace:
+         dest=/etc/ssh/sshd_config
+         regexp="{{ item.pname }}"
+         replace="{{ item.value }}"
+       with_items:
+         - { pname: '(?i)^#?ChallengeResponseAuthentication.*', value: 'ChallengeResponseAuthentication yes'}
+
+     - name: Making SSH Aware of MFA
+       lineinfile:
+         path: /etc/ssh/sshd_config
+         line: "{{ item }}"
+       with_items:
+         - 'AuthenticationMethods password keyboard-interactive' 
+
+     - name: Disable SSH Allowed Users
+       replace:
+        path: /etc/ssh/sshd_config
+        regexp:  '(.*)?AllowUsers\s+(.*)?$'
+        replace: '#AllowUsers'
+
+     - name: Restart sshd service
+       service:
+         name: sshd
+         state: restarted
+
+     - name: Cleanup Temporary remote data
+       file:
+         path: "/home/hpe/ansible/ansible-sap-hana-deploy-rhel/google_auth_keyexchange/.google_authenticator"
+         state: absent
+       run_once: True
+       delegate_to: localhost
+

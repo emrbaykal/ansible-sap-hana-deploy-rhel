@@ -1,14 +1,14 @@
 ---
  
  - read_csv:
-     path: /home/hpe/ansible/ansible-sap-hana-deploy/host-vms-csv/vms-local-storage.csv
+     path: /home/hpe/ansible/ansible-sap-hana-deploy-rhel/host-vms-csv/vms-local-storage.csv
      key: hostname
    register: vms
 
 
  - name: Create Ansible Hosts File
    lineinfile:
-     dest: /home/hpe/ansible/ansible-sap-hana-deploy/hosts
+     dest: /home/hpe/ansible/ansible-sap-hana-deploy-rhel/hosts
      insertafter: '[hana]'
      line: "{{ item.value.hostname }} ansible_host={{ item.value.data_ip }}"
    loop: "{{ vms.dict|dict2items }}"

@@ -10,9 +10,6 @@
   # You can enable this feature (true/false)
   pmem: {{ item.value.pmem_conf }}
 
-  # Device Mapper Multipath Configuration
-  multipath: {{ item.value.multipath }} 
-
   #### Host Based Variables ####
   # Redhat Satellite Server Information
   sat_fqdn: {{ item.value.satellite_fqdn }}
@@ -22,13 +19,17 @@
   sat_loc: {{ item.value.satellite_location }}
   sat_host_grp: {{ item.value.satellite_host_group }}
   sat_act_key: {{ item.value.satellite_activation_key }}
+  data_interface: {{ item.value.data_interface }}
+  rep_interface: {{ item.value.rep_interface }}
 
   # access.redhat.com Information
   rhn_org_id: {{ item.value.rhn_org_id }}
   rhn_act_key: {{ item.value.rhn_act_key }}
   rhel_rlease: {{ item.value.rhel_rlease }}
 
-
+  # Hardware Raid Card type
+  broadcom_megaraid: {{ item.value.broadcom_megaraid }}
+  broadcom_megaraid_disks: {{ item.value.broadcom_megaraid_disks }}
 
   # OS Data Logical Drive
   OS_LogicalDriveName: OS
@@ -49,7 +50,7 @@
       volume_group: vg_hana_log
   hana_usr_sap_disks:
       partition: {{ item.value.usr_sap_partition }}
-      volume_group: vg_hana_usr_sap
+      volume_group: vg_hana_usr_sap 
 
   hanavols:
     hana_shared:
@@ -81,7 +82,8 @@
 
   ### Hana DB Configuration Parameters ###
   # Components ( Valid values: all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | pos | sal | sca | sop | trd | udf )
-  components: server,client
+  #components: server,client
+  components: {{ item.value.hana_components }}
   # Action ( Default: exit; Valid values: install | update | extract_components )
   action: install
   # SAP HANA System ID (ex: HDB)
@@ -121,4 +123,5 @@
   operation_mode: {{ item.value.rep_operation_mode }}
 
   # Hana Key Exchange Temporary Storage ( logreplay )
-  sap_hana_hsr_keyexchange_tmp: /home/hpe/ansible/ansible-sap-hana-deploy/hsr_keyexchange_tmp
+  sap_hana_hsr_keyexchange_tmp: /home/hpe/ansible/ansible-sap-hana-deploy-rhel/hsr_keyexchange_tmp
+

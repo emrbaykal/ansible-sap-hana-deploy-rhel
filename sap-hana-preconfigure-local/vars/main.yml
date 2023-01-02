@@ -28,4 +28,4 @@ sap_required_packages:
 - gtk2
 - libtool-ltdl
 - tuned-profiles-sap-hana
-- compat-sap-c++-9
+- compat-sap-c++-10

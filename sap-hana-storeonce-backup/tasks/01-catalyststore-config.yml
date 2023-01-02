@@ -1,0 +1,79 @@
+---
+
+    - name: Check Catalyst Store      
+      uri:
+        url: "https://{{ storeonce_ip }}/api/v1/data-services/cat/stores"
+        method: GET
+        return_content: yes
+        body: ""
+        body_format: json
+        validate_certs: no
+        user: "{{ storeonce_username }}"
+        password: "{{ storeonce_password }}"
+        force_basic_auth: yes
+        status_code: 200
+      delegate_to: localhost
+      register: catalyst_store
+
+
+    - set_fact:
+         catalyst_store_name: "HANA-DB-{{ sid }}"
+      delegate_to: localhost
+
+    - name: Create & Configure Catalyst Store
+      block:
+
+          - name: Create Client
+            uri:
+              url: "https://{{ storeonce_ip }}/api/v1/data-services/cat/clients"
+              method: POST
+              return_content: yes
+              body: "{\"name\": \"backint-{{ sid | lower }}\" , \"description\": \"SAP HANA Backint for {{ sid }} SID\" , \"password\": \"{{ catalyst_client_password }}\" }"
+              body_format: json
+              validate_certs: no
+              user: "{{ storeonce_username }}"
+              password: "{{ storeonce_password }}"
+              force_basic_auth: yes
+              status_code: 201
+            register: catalyst_client
+
+          - set_fact:
+              client_id: "{{ catalyst_client.location[-1] }}"
+
+          - name: Create Catalyst Store
+            uri:
+              url: "https://{{ storeonce_ip }}/api/v1/data-services/cat/stores"
+              method: POST
+              return_content: yes
+              body: "{\"name\": \"HANA-DB-{{ sid }}\",\"description\": \"SAP HANA DB {{ sid }}\" , \"primaryTransferPolicy\": \"0\", \"secondaryTransferPolicy\": \"1\", \"dataJobRetentionDays\": \"32\", \"copyJobRetentionDays\": \"32\", \"encryptionEnabled\": \"false\" }"
+              body_format: json
+              validate_certs: no
+              user: "{{ storeonce_username }}"
+              password: "{{ storeonce_password }}"
+              force_basic_auth: yes
+              status_code: 201
+            register: add_catalyst_store
+    
+          - set_fact:
+              catalyst_store_id: "{{ add_catalyst_store.location[-1] }}"
+
+          - wait_for:
+             timeout: 20
+
+          - name: Set Store Permission
+            uri:
+              url: "https://{{ storeonce_ip }}/api/v1/data-services/cat/stores-permissions/store/{{ catalyst_store_id }}/client/{{ client_id }}"
+              method: PUT
+              return_content: yes
+              body: "{\"allowAccess\": \"true\" }"
+              body_format: json
+              validate_certs: no
+              user: "{{ storeonce_username }}"
+              password: "{{ storeonce_password }}"
+              force_basic_auth: yes
+              status_code: 204
+
+      when:
+        - "catalyst_store_name not in  ( catalyst_store.content | regex_findall('<name>(.*?)</name>'))"
+        - secondary_server['hostname'] != inventory_hostname
+

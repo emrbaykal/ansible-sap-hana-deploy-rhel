@@ -1,4 +1,5 @@
 ---
+
   - name: Sleep for 300 seconds and continue with play
     wait_for:
       timeout: 300
@@ -7,18 +8,36 @@
   - name: Gathering Local Server facts
     setup:
     register: setup_info
+    run_once: true
     delegate_to: localhost
 
   - name: Show Deployment Server IP Address Information
     debug:
       msg: "Local Ip Addres is: {{ setup_info.ansible_facts.ansible_default_ipv4.address }}"
+    run_once: true
 
-  - name: Starting Internal Web Site
-    service:
-      name: apache2
-      state: started
+  - name: Configure Apache sites-available 000-default.conf
+    replace:
+      path: /etc/apache2/sites-available/000-default.conf
+      regexp: '(.*)DocumentRoot(.*)$'
+      replace: 'DocumentRoot /home/hpe/ansible/ansible-sap-hana-deploy-rhel/setup/html'
     become: yes
+    run_once: true
     delegate_to: localhost
+    notify: 'Starting Internal Web Site'
+
+  - name: Configure Apache sites-available default-ssl.conf
+    replace:
+      path: /etc/apache2/sites-available/default-ssl.conf
+      regexp: '(.*)DocumentRoot(.*)$'
+      replace: 'DocumentRoot /home/hpe/ansible/ansible-sap-hana-deploy-rhel/setup/html'
+    become: yes
+    run_once: true
+    delegate_to: localhost
+    notify: 'Starting Internal Web Site'
+
+  - name: "Flush handlers"
+    meta: flush_handlers
 
   - name: Server Powered Off
     hpilo_boot:
@@ -35,5 +54,5 @@
       password: "{{ server_hardware_password }}"
       media: cdrom
       image: http://{{ setup_info.ansible_facts.ansible_default_ipv4.address }}/media/{{ installation_media }}
-      state: boot_once
+      state: boot_always
     delegate_to: localhost

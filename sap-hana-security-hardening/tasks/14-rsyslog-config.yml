@@ -19,3 +19,7 @@
      dest: /etc/rsyslog.d/remote.conf
   notify: restart_rsyslog_service
   when: rsys_log_srv|default
+
+- name: Flush Rsyslog Handlers
+  meta: flush_handlers
+

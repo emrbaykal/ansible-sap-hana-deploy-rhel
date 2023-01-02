@@ -10,6 +10,7 @@
   tags:
     - role::physical-server-preconfigure-shared
     - role::physical-server-preconfigure-shared::logical-drives
+  when: broadcom_megaraid == false
 
 - import_tasks: 03-bios-settings.yml
   tags:

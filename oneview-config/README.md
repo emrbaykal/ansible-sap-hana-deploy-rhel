@@ -1,61 +1,38 @@
-Role Name: oneview-config
+Role Name
 =========
 
-**Proliant servers are registered on the oneview application.**
+A brief description of the role goes here.
 
-This role import following yaml files:
+Requirements
+------------
 
-- Import 01-authenticate-oneview.yml
-  - Made authentication to OneView Software.
-- Import 02-time-config.yml
-  - Time settings of the OneView software are being made..
-- Import 03-create-scope.yml
-  - Server scope definition is made on the oneview software where sap hana servers will be located..
-- Import 04-add-server-hardware.yml
-  - Reporting the health of hana system replication.
-- Import 05-get-server-hardware.yml
-  - Proliant Servers made registration to oneview software.
-- Import 06-email-notification.yml
-  - Making the necessary mail settings to be transmitted over onview software  in case of hardware malfunctions.
+Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
 
-  Main Playbook
-  ----------------
+Role Variables
+--------------
 
-  ```yaml
-  ---
-    - import_tasks: 01-authenticate-oneview.yml
-      run_once: True
-      tags:
-        - role::oneview-config
-        - role::oneview-config::authenticate
+A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
 
-    - import_tasks: 02-time-config.yml
-      run_once: True
-      tags:
-        - role::oneview-config
-        - role::oneview-config::time-config
+Dependencies
+------------
 
-    - import_tasks: 03-create-scope.yml
-      run_once: True
-      tags:
-        - role::oneview-config
-        - role::oneview-config::create-scope
+A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
 
-    - import_tasks: 04-add-server-hardware.yml
-      tags:
-        - role::oneview-config
-        - role::oneview-config::add-server-hardware
+Example Playbook
+----------------
 
-    - import_tasks: 05-get-server-hardware.yml
-      run_once: True
-      tags:
-        - role::oneview-config
-        - role::oneview-config::get-server-hardware
+Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
-    - import_tasks: 06-email-notification.yml
-      run_once: True
-      tags:
-        - role::oneview-config
-        - role::oneview-config::email-notification
+    - hosts: servers
+      roles:
+         - { role: username.rolename, x: 42 }
 
-  ```
+License
+-------
+
+BSD
+
+Author Information
+------------------
+
+An optional section for the role authors to include contact information, or a website (HTML is not allowed).

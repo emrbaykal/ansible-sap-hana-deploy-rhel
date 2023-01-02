@@ -3,17 +3,17 @@
 
   - name: ensure short system hostname is set
     hostname:
-      name: '{{ ansible_hostname }}'
+      name: '{{ inventory_hostname }}'
 
   - name: "Make sure server's IP address is in /etc/hosts"
     lineinfile:
       path: /etc/hosts
       regexp: '^{{ ansible_default_ipv4.address }}\s'
-      line: "{{ ansible_default_ipv4.address }} {{ ansible_hostname }}.{{ fqdn }} {{ ansible_hostname }} "
+      line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname }}.{{ fqdn }} {{ inventory_hostname }} "
       state: present
 
   - debug:
-      msg: "System {{ ansible_hostname }}, {{ ansible_hostname }}.{{ fqdn }} has ipv4 address {{ ansible_default_ipv4.address }}"
+      msg: "System {{ inventory_hostname }}, {{ inventory_hostname }}.{{ fqdn }} has ipv4 address {{ ansible_default_ipv4.address }}"
 
 
   - name: "Make sure the short hostname is returned with \"hostname\" command and not FQDN"
@@ -49,6 +49,7 @@
                exit 1
             fi
     with_items:
-            - '{{ ansible_hostname }}.{{ fqdn }}'
-            - '{{ ansible_hostname }}'
+            - '{{ inventory_hostname }}.{{ fqdn }}'
+            - '{{ inventory_hostname }}'
     changed_when: false
+

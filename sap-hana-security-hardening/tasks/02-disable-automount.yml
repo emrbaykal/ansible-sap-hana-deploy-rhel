@@ -10,3 +10,4 @@
     state: stopped
     enabled: no
   when: services_state.ansible_facts.services["autofs.service"]|default
+

@@ -1,7 +1,7 @@
 ---
 
     - read_csv:
-        path: /home/hpe/ansible/ansible-sap-hana-deploy/host-vms-csv/vms-vmware.csv
+        path: /home/hpe/ansible/ansible-sap-hana-deploy-rhel/host-vms-csv/vms-vmware.csv
         key: hostname
       register: vms
 
@@ -14,5 +14,6 @@
     - name: Deploy User Variable File
       template:
          src: hosts-vars.j2
-         dest: "/home/hpe/ansible/ansible-sap-hana-deploy/host_vars/{{ item.value.hostname }}.yml"
+         dest: "/home/hpe/ansible/ansible-sap-hana-deploy-rhel/host_vars/{{ item.value.hostname }}.yml"
       loop: "{{ vms.dict|dict2items }}"
+

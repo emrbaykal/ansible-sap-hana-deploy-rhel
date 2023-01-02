@@ -54,12 +54,6 @@
     enabled: no
   when: services_state.ansible_facts.services["abrtd-ccpp.service"]|default
 
-- name: Disable Kdump Service
-  service:
-    name: kdump
-    state: stopped
-    enabled: no
-  when: services_state.ansible_facts.services["kdump.service"]|default
 
 - name: To disable core core file creation for all users
   copy:
@@ -84,9 +78,9 @@
 
 - name: Change grub File Parameters in to /etc/default/grub
   lineinfile:
-      path=/etc/default/grub
-      regexp="^GRUB_CMDLINE_LINUX="
-      line='GRUB_CMDLINE_LINUX="resume={{ ansible_proc_cmdline.resume }} rd.lvm.lv={{ ansible_proc_cmdline['rd.lvm.lv'].0 }} rd.lvm.lv={{ ansible_proc_cmdline['rd.lvm.lv'].1 }} rhgb quiet transparent_hugepage=never numa_balancing=disable intel_idle.max_cstate=1 processor.max_cstate=1"'
+    path=/etc/default/grub
+    regexp="^GRUB_CMDLINE_LINUX="
+    line='GRUB_CMDLINE_LINUX="resume={{ ansible_proc_cmdline.resume }} rd.lvm.lv={{ ansible_proc_cmdline['rd.lvm.lv'].0 }} rd.lvm.lv={{ ansible_proc_cmdline['rd.lvm.lv'].1 }} rhgb quiet crashkernel=auto transparent_hugepage=never numa_balancing=disable intel_idle.max_cstate=1 processor.max_cstate=1"'
   register: grub
 
 - name: Run the grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg command to generate the grub configuration file
@@ -107,3 +101,51 @@
     sleep: 15
     delay: 30
   when: rebooting.changed
+
+- name: Tune core_collector parameters for kdump.conf
+  replace:
+    path: /etc/kdump.conf
+    regexp: "{{ item.regex }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - {regex: '^core_collector(.+)$', replace: 'core_collector makedumpfile -d 31 -c --message-level 7'}
+    - {regex: '#\sfailure_action(.+)$', replace: 'failure_action poweroff'}
+
+
+- name: Set as specified in /etc/sysctl.conf so system will panic on NMI
+  sysctl:
+    name="{{ item.pname }}"
+    value="{{ item.value }}"
+    sysctl_set=yes
+    state=present
+    reload=yes
+  with_items:
+  - { pname: 'kernel.unknown_nmi_panic', value: '1' }
+  - { pname: 'kernel.panic_on_unrecovered_nmi', value: '1' }
+  - { pname: 'kernel.panic_on_io_nmi', value: '1' }
+
+- name: Enable kdump Service
+  service:
+    name: kdump
+    state: started
+    enabled: yes
+
+- name: Build Initramfs
+  command: "dracut -f -v"
+  register: initramfs
+
+- name: Rebooting ...
+  shell: sleep 2 && /sbin/shutdown -r now "Reboot required for grub"
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: initramfs.changed
+  register: rebooting
+
+- name: Wait for system to become reachable
+  wait_for_connection:
+    timeout: 900
+    sleep: 15
+    delay: 30
+  when: rebooting.changed
+

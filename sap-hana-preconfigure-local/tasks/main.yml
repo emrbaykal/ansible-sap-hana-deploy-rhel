@@ -20,7 +20,7 @@
   - import_tasks: 03-configure-network-time-and-date.yml
     tags:
     - role::sap-hana-preconfigure-local
-    - role::sap-hana-preconfigure-local::configure-network-time-and-date
+    - role::sap-hana-preconfigure-local::date-time
 
   -  import_tasks: 04-disable-firewalld-and-selinux.yml
      tags:

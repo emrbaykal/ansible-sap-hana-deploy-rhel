@@ -1,7 +1,5 @@
----
-
 - name: Install ipmctl and ndctl package to configure and monitor the persistent memory installed
-  zypper:
+  dnf:
     name: "{{ item }}"
     state: present
   with_items:
@@ -92,3 +90,4 @@
     state: mounted
   with_items:
     - "{{ pmem_disc }}"
+

@@ -2,6 +2,27 @@
 
 # Configure Local Mount Points
 
+- name: Megaraid Card Virtual Drive Config
+  block:
+
+    - name: Add Virtual Drive For HANA DB
+      command: "/opt/hpe/storcli/storcli64 /c0 add vd type=r5 name=HANA drives={{ disk_drives }}"
+
+    - name: sleep for 600 seconds and continue with play
+      wait_for:
+        timeout: 600
+      delegate_to: localhost
+
+    - name: Show Virtual Drive Informations
+      command: "/opt/hpe/storcli/storcli64 /c0/vall show"
+      register: virtual_drives
+
+    - name: List Virtual Drives
+      debug:
+        var: virtual_drives.stdout_lines
+
+  when: broadcom_megaraid == true
+
 - name: Create "{{ hana_disks['partition'] }}" parted partition
   parted:
     device: "{{ hana_disks['partition'] }}"

@@ -1,5 +1,5 @@
 ---
-# vars file for suse-os-preconfigure
+# vars file for redhat-os-preconfigure
 
 sap_required_packages:
 - expect
@@ -28,4 +28,5 @@ sap_required_packages:
 - gtk2
 - libtool-ltdl
 - tuned-profiles-sap-hana
-- compat-sap-c++-9
+- compat-sap-c++-10
+

@@ -1,2 +1,11 @@
 ---
 # handlers file for physical-server-preconfigure
+
+  - name: Starting Internal Web Site
+    service:
+      name: apache2
+      state: restarted
+    run_once: true
+    become: yes
+    delegate_to: localhost
+

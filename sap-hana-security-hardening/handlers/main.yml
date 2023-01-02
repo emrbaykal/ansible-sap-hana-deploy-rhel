@@ -17,6 +17,8 @@
 
   - name: restart_auditd_service
     command: "{{ item }}"
+    args:
+      warn: false
     with_items:
       - service  auditd  stop
       - systemctl start auditd
@@ -28,3 +30,4 @@
 
   - name: unload_usb-storage
     command: modprobe -r usb-storage
+
