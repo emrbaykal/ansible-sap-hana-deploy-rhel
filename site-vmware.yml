@@ -24,7 +24,7 @@
           pam_module: google-authenticator-libpam-1.09-15.2.x86_64.rpm
 
           # Vmware Virtual Center Credentails
-          vcenter_hostname: 10.254.254.6
+          vcenter_hostname: xx.xx.xx.xx
           vcenter_username: administrator@vsphere.local
           vcenter_password: XXXXXXXX
 
@@ -32,19 +32,19 @@
           fqdn: hpetrlab.local
 
           # Mail Relay Host / Admin Mail Address
-          relayhost: 10.254.254.10
+          relayhost: xx.xx.xx.xx
           recipientmail: emre.baykal@hpetrlab.local
           sendermail: sap@hpetrlab.local
           mail_domain: hpetrlab.local
 
           # Remote Sys Log Server // Keep Blank if not rsyslog server desired
-          rsys_log_srv: 10.254.254.10
+          rsys_log_srv: xx.xx.xx.xx
           rsys_log_srv_port: 514
 
           # Time Sync Parameters
           ntp_servers:
-            - 10.254.254.10
-            - 10.254.254.11
+            - xx.xx.xx.xx
+            - xx.xx.xx.xx
 
           # HPE Oneview Config Parameters
           oneview_ip: XXX.XXX.XXX.XXX
@@ -54,7 +54,7 @@
 
           # Hana StoreOnce Catalyst Plug In Config
           catalyst_plugin: HPE_StoreOnce_Catalyst_Plug_in_2.2.0_for_SAP_HANA_Linux_EH991-91007.tar.gz
-          storeonce_ip: 10.254.254.201
+          storeonce_ip: xx.xx.xx.xx
           storeonce_username: Admin
           storeonce_password: XXXXXX
           catalyst_client_password: XXXXX
