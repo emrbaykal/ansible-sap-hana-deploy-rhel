@@ -1,7 +1,7 @@
 ---
 
 - name: Install ipmctl and ndctl package to configure and monitor the persistent memory installed
-  dnf:
+  zypper:
     name: "{{ item }}"
     state: present
   with_items:
@@ -9,14 +9,16 @@
    - ndctl
 
 - name: Create app direct regions (goal) use interleaving
-  command: "ipmctl create -goal MemoryMode=0 PersistentMemoryType=AppDirect"
+  expect:
+    command: "ipmctl create -goal MemoryMode=0 PersistentMemoryType=AppDirect"
+    responses:
+        'Do you want to continue?' : 'y'
 
 - name: Rebooting ...
   shell: sleep 2 && /sbin/shutdown -r now "Reboot required for grub"
   async: 1
   poll: 0
   ignore_errors: true
-  when: grub.changed
   register: rebooting
 
 - name: Wait for system to become reachable
@@ -60,7 +62,7 @@
 
 - name: Confirm Pmem Configuration
   pause:
-    prompt: Please confirm PMEM Configuration! Press return to continue. Press Ctrl+c and then "a" to abort
+    prompt: Please confirm PMEM Configuration! Press return to continue. Press "c" and then "a" to abort
 
 - name: Create App Direct Namespaces
   command: "ndctl create-namespace --mode fsdax --continue"
@@ -92,4 +94,3 @@
     state: mounted
   with_items:
     - "{{ pmem_disc }}"
-
