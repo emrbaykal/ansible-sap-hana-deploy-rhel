@@ -33,3 +33,7 @@
       - role::sap-hana-deploy
       - role::sap-hana-deploy::hana-service-user
 
+  - import_tasks: 06-monitor-hana-services.yml
+    tags:
+      - role::sap-hana-deploy
+      - role::sap-hana-deploy::monitor-hana-services

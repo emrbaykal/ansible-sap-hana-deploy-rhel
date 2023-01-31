@@ -1,0 +1,17 @@
+---
+
+- name: Implement cron.allow
+  copy:
+    content: |
+             root
+             {{ sid | lower }}adm
+             sapadm
+    dest: /etc/cron.allow
+
+- name: Implement at.allow
+  file:
+    path: /etc/at.allow
+    owner: root
+    group: root
+    state: touch
+

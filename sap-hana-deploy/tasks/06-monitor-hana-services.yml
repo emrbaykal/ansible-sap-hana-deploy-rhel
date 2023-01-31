@@ -1,0 +1,28 @@
+---
+
+   - name: Configure Monitor Services
+     template:
+       src: "check-hana-service-health.js"
+       dest: "/etc/systemd/system/check-hana-{{ sid }}.service"
+       owner: root
+       group: root
+       mode: 0644
+       backup: yes
+
+   - name: Configure Monitor Service Scripts
+     template:
+       src: "check_hana_service.js"
+       dest: "/usr/local/sbin/check_hana_{{ sid }}"
+       owner: root
+       group: root
+       mode: 0755
+       backup: yes
+
+   - name: Reload Service Daemons
+     command: systemctl daemon-reload
+
+   - name: Enable & Start Monitoring Services
+     systemd:
+       name: "check-hana-{{ sid }}.service"
+       state: started
+       enabled: yes

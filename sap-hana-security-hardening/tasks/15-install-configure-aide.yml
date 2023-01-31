@@ -1,0 +1,48 @@
+---
+
+   - name: Ensure aide is installed
+     dnf:
+      name: aide
+      state: present
+
+   - name: Configure AIDE Configuration File
+     template:
+       src: aide_conf.js
+       dest: /etc/aide.conf
+       owner: root
+       group: root
+       mode: 0644
+       backup: yes
+
+   - name: Configure AIDE Control Script
+     template:
+       src: check-aide.js
+       dest: /usr/local/sbin/check_aide.sh
+       owner: root
+       group: root
+       mode: 0755
+       backup: yes
+
+   - name: AIDE Initialization
+     shell: |
+       aide --init
+       mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+     args:
+      executable: /bin/bash
+
+   - name: Create First AIDE Report
+     shell: /usr/local/sbin/check_aide.sh
+     args:
+      executable: /bin/bash
+
+   - name: Configure Periodic Execution of AIDE
+     cron:
+       name: run AIDE check
+       minute: "0"
+       hour: "4"
+       day: "*"
+       weekday: "0"
+       user: root
+       job: /usr/local/sbin/check_aide.sh
+
+

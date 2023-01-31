@@ -1,0 +1,46 @@
+---
+
+   - name: Ensure sysstat is installed
+     dnf:
+      name: sysstat
+      state: present
+
+   - name: Configure Monitor Services
+     template:
+       src: "{{ item.src }}"
+       dest: "{{ item.dest }}"
+       owner: root
+       group: root
+       mode: 0644
+       backup: yes
+     with_items:
+       - { src: 'check-cpu-usage-service.js', dest: '/etc/systemd/system/check-cpu-usage.service' }
+       - { src: 'check-disk-usage-service.js', dest: '/etc/systemd/system/check-disk-usage.service' }
+       - { src: 'check-mem-usage-service.js', dest: '/etc/systemd/system/check-mem-usage.service' }
+
+   - name: Configure Monitor Service Scripts
+     template:
+       src: "{{ item.src }}"
+       dest: "{{ item.dest }}"
+       owner: root
+       group: root
+       mode: 0755
+       backup: yes
+     with_items:
+       - { src: 'check_cpu_usage.js', dest: '/usr/local/sbin/check_cpu_usage' }
+       - { src: 'check_disk_usage.js', dest: '/usr/local/sbin/check_disk_usage' }
+       - { src: 'check_mem_usage.js', dest: '/usr/local/sbin/check_mem_usage' }
+
+   - name: Reload Service Daemons
+     command: systemctl daemon-reload
+
+   - name: Enable & Start Monitoring Services
+     systemd:
+       name: "{{ item }}"
+       state: started
+       enabled: yes
+     with_items:
+       - check-cpu-usage.service
+       - check-disk-usage.service
+       - check-mem-usage.service
+

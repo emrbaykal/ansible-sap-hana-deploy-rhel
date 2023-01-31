@@ -43,6 +43,14 @@
             - XXX.XXX.XXX.XXX
             - XXX.XXX.XXX.XXX
 
+          # Monitoring Thresholds
+          # CPU Usage % Threshold
+          cpu_threshold: 85
+          # Memory Usage % Threshold
+          mem_threshold: 85
+          # Disk Usage % Threshold
+          disk_threshold: 80
+
           # HPE Oneview Config Parameters
           oneview_ip: XXX.XXX.XXX.XXX
           oneview_username: administrator

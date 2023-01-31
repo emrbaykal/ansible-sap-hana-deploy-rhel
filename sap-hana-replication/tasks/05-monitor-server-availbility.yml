@@ -1,0 +1,44 @@
+---
+
+   - name: Configure Monitor Services For Primary Server
+     template:
+       src: "check-server-availbility-service.js"
+       dest: "/etc/systemd/system/check-server-availbility.service"
+       owner: root
+       group: root
+       mode: 0644
+       backup: yes
+
+   - name: Configure Monitor Service Scripts For Primary Server
+     template:
+       src: "check_server_availbility_primary.js"
+       dest: "/usr/local/sbin/check_server_availbility"
+       owner: root
+       group: root
+       mode: 0755
+       backup: yes
+     when:
+      - primary_server['hostname'] == ansible_hostname
+
+   - name: Configure Monitor Service Scripts For Secondary Server
+     template:
+       src: "check_server_availbility_secondary.js"
+       dest: "/usr/local/sbin/check_server_availbility"
+       owner: root
+       group: root
+       mode: 0755
+       backup: yes
+     when:
+      - secondary_server['hostname'] == ansible_hostname
+
+
+   - name: Reload Service Daemons
+     command: systemctl daemon-reload
+
+
+   - name: Enable & Start Monitoring Services
+     systemd:
+       name: "check-server-availbility.service"
+       state: started
+       enabled: yes
+

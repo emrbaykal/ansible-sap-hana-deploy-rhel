@@ -1,6 +1,9 @@
 ### auditd.rules Config - Managed using Ansible
 ## Please don't edit manually.
 
+## Make the loginuid immutable. This prevents tampering with the auid.
+--loginuid-immutable 
+
 -e 1
 -f 1
 -b 8192

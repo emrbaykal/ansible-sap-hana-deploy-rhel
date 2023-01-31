@@ -1,7 +1,7 @@
 ---
 
 - name: Install ipmctl and ndctl package to configure and monitor the persistent memory installed
-  zypper:
+  dnf:
     name: "{{ item }}"
     state: present
   with_items:
@@ -19,6 +19,7 @@
   async: 1
   poll: 0
   ignore_errors: true
+  when: grub.changed
   register: rebooting
 
 - name: Wait for system to become reachable
@@ -94,3 +95,4 @@
     state: mounted
   with_items:
     - "{{ pmem_disc }}"
+

@@ -34,3 +34,9 @@
     tags:
       - role::sap-hana-replication
       - role::sap-hana-replication::system-replication-status
+
+  - import_tasks: 05-monitor-server-availbility.yml
+    tags:
+      - role::sap-hana-replication
+      - role::sap-hana-replication::monitor-server-availbility
+
