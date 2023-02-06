@@ -1,10 +1,10 @@
 [Unit]
-Description=Disk Usage & Reporting Service
+Description=Check Network Service
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/sbin/check_disk_usage
+ExecStart=/usr/local/sbin/check_network
 Restart=on-abort
 
 [Install]

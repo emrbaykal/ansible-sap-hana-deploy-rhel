@@ -21,7 +21,6 @@ if [ "$stopped_count" -ge 1 ]  && [ "$email_sent" -eq 0 ]; then
 
 
 body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -31,7 +30,7 @@ PED Instance Process List:
 
 $processes_list
 
-Regards"
+This email is an automated message. Please do not reply. "
 
 echo "$body" | mail -s "Warning Is Received From SAP HANA Services Running On $(hostname) Server !" "$recipient"
 
@@ -46,7 +45,6 @@ if [ "$stopped_count" -eq 0 ] && [ "$email_sent" -eq 1 ]; then
 
 
 body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -56,7 +54,7 @@ PED Instance Process List:
 
 $processes_list
 
-Regards"
+This email is an automated message. Please do not reply. "
 
 echo "$body" | mail -s "SAP HANA Services Returned To Desired Status $(hostname) Server !" "$recipient"
 
@@ -65,7 +63,8 @@ email_sent=0
 
 fi
 
-# Sleep for 5 minutes
-sleep 300
+# Sleep for 1 minutes
+sleep 60
 
 done
+

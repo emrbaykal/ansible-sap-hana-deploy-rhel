@@ -1,8 +1,8 @@
 ---
   # Proliant Server ILO Info
-  server_hardware_ilo_ip: xx.xx.xx.xx
-  server_hardware_username: xxxxx 
-  server_hardware_password: xxxxx
+  server_hardware_ilo_ip: 10.205.77.222 
+  server_hardware_username: hpadmin 
+  server_hardware_password: HP1nvent
 
   # Persistent Memory Configuration
   # If Persistent Memory  defined
@@ -11,7 +11,7 @@
 
   #### Host Based Variables ####
   # SUSE Connect subscribe  variables
-  regcode: xxxxxxxx
+  regcode: B7B6DC7ECAC778
 
   # OS Data Logical Drive
   OS_LogicalDriveName: OS
@@ -76,11 +76,11 @@
   # System Usage ( Default: custom; Valid values: production | test | development | custom )
   system_usage: production
   # SAP Host Agent User (sapadm) Password
-  sapadm_password: xxxxx
+  sapadm_password: HP1nv3nt
   # System Administrator Password
-  system_admin_password: xxxxxx
+  system_admin_password: HP1nv3nt
   # Database User (SYSTEM) Password
-  system_user_password: xxxxxx
+  system_user_password: HP1nv3nt
   # Restrict maximum memory allocation? ( Default: off; Valid values: off | on )
   restrict_max_mem: off
   # Maximum Memory Allocation in MB

@@ -18,6 +18,17 @@
        - { src: 'check-disk-usage-service.js', dest: '/etc/systemd/system/check-disk-usage.service' }
        - { src: 'check-mem-usage-service.js', dest: '/etc/systemd/system/check-mem-usage.service' }
 
+   - name: Configure Network Interface Monitor Services
+     template:
+       src: check-network-service.js
+       dest: /etc/systemd/system/check-network.service
+       owner: root
+       group: root
+       mode: 0644
+       backup: yes
+     when:
+       - ansible_virtualization_role != "guest"
+
    - name: Configure Monitor Service Scripts
      template:
        src: "{{ item.src }}"
@@ -30,6 +41,17 @@
        - { src: 'check_cpu_usage.js', dest: '/usr/local/sbin/check_cpu_usage' }
        - { src: 'check_disk_usage.js', dest: '/usr/local/sbin/check_disk_usage' }
        - { src: 'check_mem_usage.js', dest: '/usr/local/sbin/check_mem_usage' }
+
+   - name: Configure Network Interface Monitor Service Scripts
+     template:
+       src: check_network.js
+       dest: /usr/local/sbin/check_network
+       owner: root
+       group: root
+       mode: 0755
+       backup: yes
+     when:
+       - ansible_virtualization_role != "guest"
 
    - name: Reload Service Daemons
      command: systemctl daemon-reload
@@ -44,3 +66,10 @@
        - check-disk-usage.service
        - check-mem-usage.service
 
+   - name: Enable & Start Network Monitoring Services
+     systemd:
+       name: check-network.service
+       state: started
+       enabled: yes
+     when:
+       - ansible_virtualization_role != "guest"

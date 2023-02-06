@@ -19,14 +19,13 @@ recipient="{{ recipientmail }}"
            # Check ssh service health
            if [ $email_sent -eq 1 ]; then
               body="
-Hi
 
 This mail was sent from server $(hostname).
 
 {{ primary_server['hostname'] }} reachable, Check Operating System && SAP Hana Services !!
 
 
-Regards"
+This email is an automated message. Please do not reply. "
 
         echo "$body" | mail -s "Server availibility for {{ primary_server['hostname'] }} server !!" "$recipient"
         email_sent=0
@@ -39,22 +38,20 @@ Regards"
       if [ $email_sent -eq 0 ]; then
 
        body="
-Hi
 
 This mail was sent from server $(hostname).
 
 {{ primary_server['hostname'] }} is giving unresponse, Check Operating System && Hardware State !!
 
 
-Regards"
+This email is an automated message. Please do not reply. "
 
         echo "$body" | mail -s "Server availibility for {{ primary_server['hostname'] }} server !!" "$recipient"
         email_sent=1
       fi
     fi
 
-sleep 20
+sleep 60
 
 done
-
 

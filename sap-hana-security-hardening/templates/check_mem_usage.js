@@ -27,7 +27,6 @@ recipient="{{ recipientmail }}"
 
         # Send the email with the memory usage and top processes information
         body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -39,7 +38,7 @@ Top processes using the most memory:
 
 $top_processes
 
-Regards"
+This email is an automated message. Please do not reply. "
 
         echo "$body" | mail -s "High Memory Usage Warning from $(hostname) server !" "$recipient"
 
@@ -53,7 +52,6 @@ Regards"
     # check if usage falls below threshold
     if (( $(echo "$memory_usage < $threshold" | bc -l) )) && [ "$email_sent" -eq 1 ]; then
         body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -61,7 +59,7 @@ Memory Usage on $(hostname) went below $threshold% level during last 5 minutes.
 
 Current memory usage is $memory_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
         echo "$body" | mail -s "Memory Usage turned back nominal levels for $(hostname) server !" "$recipient"
 

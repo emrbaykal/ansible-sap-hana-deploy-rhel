@@ -13,7 +13,6 @@ show_date=$(/usr/bin/date "+%A %B %d %Y")
 # Send the email with the memory usage and top processes information
 
 body="
-Hi
 
 AIDE report dated $show_date from $(hostname) server is listed below.
 
@@ -27,7 +26,7 @@ $aide_check
 
 ###################################################################################
 
-Regards"
+This email is an automated message. Please do not reply. "
 
 echo "$body" | mail -s "Advanced Intrusion Detection Environment Report from $(hostname) server !" "$recipient"
 

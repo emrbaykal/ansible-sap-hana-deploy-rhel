@@ -1,5 +1,5 @@
 [Unit]
-Description=Cpu Usage & Reporting Service
+Description=Memory Usage & Reporting Service
 After=network.target
 
 [Service]

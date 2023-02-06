@@ -41,13 +41,14 @@ root_mount_point="/"
 
 #----- Root FileSystem -----
 
+if [ -d "$root_mount_point" ]; then
+
     if mountpoint -q "$root_mount_point" ; then
 
     # check if / usage exceeds threshold and email has not been sent yet
     if [ "$root_usage" -gt "$threshold" ] && [ "$email_sent_root" -eq 0 ]; then
       # Send email using the mail command
       body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -55,7 +56,7 @@ Disk usage / on $(hostname) has exceeded $threshold%.
 
 Current disk usage is $root_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "High Disk Usage Warning for / from $(hostname) server !" "$recipient"
 
@@ -66,7 +67,6 @@ Regards"
     # check if / usage falls below threshold
     if [ "$root_usage" -lt "$threshold" ] && [ "$email_sent_root" -eq 1 ]; then
     body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -74,7 +74,7 @@ Disk usage / on $(hostname) went bellow $threshold%.
 
 Current disk usage is $root_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "/ Disk Usage turning back from $(hostname) server !" "$recipient"
 
@@ -92,20 +92,23 @@ Regards"
          email_sent_mount_root=1
 
         body="
-Hi
 
 This mail was sent from server $(hostname).
 
 Mount point "$root_mount_point" is not working or healthy !!
 
-Regards"
+This email is an automated message. Please do not reply. "
 
         echo "$body" | mail -s " Warning $root_mount_point mount point from $(hostname) server !" "$recipient"
 
        fi
    fi
 
+fi
+
 #----- /hana/data FileSystem -----
+
+if [ -d "$hana_data_mount_point" ]; then
 
     if mountpoint -q "$hana_data_mount_point" ; then
 
@@ -113,7 +116,6 @@ Regards"
     if [ "$hana_data_usage" -gt "$threshold" ] && [ "$email_sent_hana_data" -eq 0 ]; then
       # Send email using the mail command
        body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -121,7 +123,7 @@ Disk usage /hana/data on $(hostname) has exceeded $threshold%.
 
 Current disk usage is $hana_data_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "High Disk Usage Warning for /hana/data from $(hostname) server !" "$recipient"
 
@@ -132,7 +134,6 @@ Regards"
     # check if /hana/data usage falls below threshold
     if [ "$hana_data_usage" -lt "$threshold" ] && [ "$email_sent_hana_data" -eq 1 ]; then
         body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -140,7 +141,7 @@ Disk usage /hana/data on $(hostname) went bellow $threshold%.
 
 Current disk usage is $hana_data_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "/hana/data Disk Usage turning back from $(hostname) server !" "$recipient"
 
@@ -157,20 +158,23 @@ Regards"
       email_sent_mount_hana_data=1
 
       body="
-Hi
 
 This mail was sent from server $(hostname).
 
 Mount point "$hana_data_mount_point" is not working or healthy !!
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s " Warning $hana_data_mount_point mount point from $(hostname) server !" "$recipient"
 
        fi
    fi
 
+fi
+
 #----- /hana/log FileSystem -----
+
+if [ -d "$hana_log_mount_point" ]; then
 
     if mountpoint -q "$hana_log_mount_point" ; then
 
@@ -178,7 +182,6 @@ Regards"
     if [ "$hana_log_usage" -gt "$threshold" ] && [ "$email_sent_hana_log" -eq 0 ]; then
       # Send email using the mail command
        body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -186,7 +189,7 @@ Disk usage /hana/log on $(hostname) has exceeded $threshold%.
 
 Current disk usage is $hana_log_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "High Disk Usage Warning for /hana/log from $(hostname) server !" "$recipient"
 
@@ -197,7 +200,6 @@ Regards"
     # check if /hana/log usage falls below threshold
     if [ "$hana_log_usage" -lt "$threshold" ] && [ "$email_sent_hana_log" -eq 1 ]; then
     body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -205,7 +207,7 @@ Disk usage /hana/log on $(hostname) went bellow $threshold%.
 
 Current disk usage is $hana_log_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "/hana/log Disk Usage turning back from $(hostname) server !" "$recipient"
 
@@ -222,20 +224,23 @@ Regards"
       email_sent_mount_hana_log=1
 
       body="
-Hi
 
 This mail was sent from server $(hostname).
 
 Mount point "$hana_log_mount_point" is not working or healthy !!
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s " Warning $hana_log_mount_point mount point from $(hostname) server !" "$recipient"
 
        fi
    fi
 
+fi
+
 #----- /hana/shared FileSystem -----
+
+if [ -d "$hana_shared_mount_point" ]; then
 
     if mountpoint -q "$hana_shared_mount_point" ; then
 
@@ -243,7 +248,6 @@ Regards"
     if [ "$hana_shared_usage" -gt "$threshold" ] && [ "$email_sent_hana_shared" -eq 0 ]; then
       # Send email using the mail command
        body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -251,7 +255,7 @@ Disk usage /hana/shared on $(hostname) has exceeded $threshold%.
 
 Current disk usage is $hana_shared_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "High Disk Usage Warning for /hana/shared from $(hostname) server !" "$recipient"
 
@@ -262,7 +266,6 @@ Regards"
     # check if /hana/shared usage falls below threshold
     if [ "$hana_shared_usage" -lt "$threshold" ] && [ "$email_sent_hana_shared" -eq 1 ]; then
     body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -270,7 +273,7 @@ Disk usage /hana/shared on $(hostname) went bellow $threshold%.
 
 Current disk usage is $hana_shared_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "/hana/shared Disk Usage turning back from $(hostname) server !" "$recipient"
 
@@ -287,20 +290,22 @@ Regards"
       email_sent_mount_hana_shared=1
 
       body="
-Hi
 
 This mail was sent from server $(hostname).
 
 Mount point "$hana_shared_mount_point" is not working or healthy !!
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s " Warning $hana_shared_mount_point mount point from $(hostname) server !" "$recipient"
 
        fi
    fi
 
+fi
 #----- /usr/sap FileSystem -----
+
+if [ -d "$hana_usr_sap_mount_point" ]; then
 
     if mountpoint -q "$hana_usr_sap_mount_point" ; then
 
@@ -308,7 +313,6 @@ Regards"
     if [ "$hana_usr_sap_usage" -gt "$threshold" ] && [ "$email_sent_hana_usr_sap" -eq 0 ]; then
       # Send email using the mail command
        body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -316,7 +320,7 @@ Disk usage /usr/sap on $(hostname) has exceeded $threshold%.
 
 Current disk usage is $hana_usr_sap_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "High Disk Usage Warning for /usr/sap from $(hostname) server !" "$recipient"
 
@@ -327,7 +331,6 @@ Regards"
     # check if /usr/sap usage falls below threshold
     if [ "$hana_usr_sap_usage" -lt "$threshold" ] && [ "$email_sent_hana_usr_sap" -eq 1 ]; then
     body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -335,7 +338,7 @@ Disk usage /uar/sap on $(hostname) went bellow $threshold%.
 
 Current disk usage is $hana_usr_sap_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "/usr/sap Disk Usage turning back from $(hostname) server !" "$recipient"
 
@@ -352,20 +355,23 @@ Regards"
       email_sent_mount_hana_usr_sap=1
 
       body="
-Hi
 
 This mail was sent from server $(hostname).
 
 Mount point "$hana_usr_sap_mount_point" is not working or healthy !!
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s " Warning $hana_usr_sap_mount_point mount point from $(hostname) server !" "$recipient"
 
        fi
    fi
 
+fi
+
 #----- /hana/backup FileSystem -----
+
+if [ -d "$hana_backup_mount_point" ]; then
 
 if mountpoint -q "$hana_backup_mount_point" ; then
 
@@ -373,7 +379,6 @@ if mountpoint -q "$hana_backup_mount_point" ; then
     if [ "$hana_backup_usage" -gt "$threshold" ] && [ "$email_sent_hana_backup" -eq 0 ]; then
       # Send email using the mail command
        body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -381,7 +386,7 @@ Disk usage /hana/backup on $(hostname) has exceeded $threshold%.
 
 Current disk usage is $hana_backup_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "High Disk Usage Warning for /hana/backup from $(hostname) server !" "$recipient"
 
@@ -392,7 +397,6 @@ Regards"
     # check if /hana/backup usage falls below threshold
     if [ "$hana_backup_usage" -lt "$threshold" ] && [ "$email_sent_hana_backup" -eq 1 ]; then
     body="
-Hi
 
 This mail was sent from server $(hostname).
 
@@ -400,7 +404,7 @@ Disk usage /hana/backup on $(hostname) went bellow $threshold%.
 
 Current disk usage is $hana_backup_usage%.
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s "/hana/backup Disk Usage turning back from $(hostname) server !" "$recipient"
 
@@ -417,19 +421,18 @@ Regards"
       email_sent_mount_hana_backup=1
 
       body="
-Hi
 
 This mail was sent from server $(hostname).
 
 Mount point "$hana_backup_mount_point" is not working or healthy !!
 
-Regards"
+This email is an automated message. Please do not reply. "
 
       echo "$body" | mail -s " Warning $hana_backup_mount_point mount point from $(hostname) server !" "$recipient"
 
        fi
    fi
-
+fi
 
     # Sleep for 1 minutes
     sleep 60
