@@ -1,24 +1,23 @@
 ---
 
-- name: "Make sure secondary server IP address is in /etc/hosts"
-  lineinfile:
-    path: /etc/hosts
-    line: "{{ secondary_server['public_ip'] }} {{ secondary_server['hostname'] }}.{{ fqdn }} {{ secondary_server['hostname'] }}"
-    state: present
+- name: Create SAP Hana Tier2 Replication
+  pause:
+    prompt: Please confirm you want to Create SAP Hana Tier2 Replication! Press return to continue. Press Ctrl+c and then "a" to abort
 
 - name: get system-replication state
   shell: |
-    su - "{{ sid|lower }}adm" -c 'python  /usr/sap/{{ sid }}/HDB{{ number }}/exe/python_support/systemReplicationStatus.py'
+    su - "{{ sid|lower }}adm" -c '/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_state'
   register: srstate_primary
   changed_when: false
-  failed_when: ( srstate_primary.rc < 10 ) or ( srstate_primary.rc > 15 )
-
-- name: debug
-  debug:
-    msg: "{{ srstate_primary.stdout_lines|first }}"
 
 - name: Primary System Replication
   block:
+    - name: "Make sure secondary server IP address is in /etc/hosts"
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ secondary_server['public_ip'] }} {{ secondary_server['hostname'] }}.{{ fqdn }} {{ secondary_server['hostname'] }}"
+        state: present
+
     - name: Perform Backup to primary node
       shell: |
           /hana/shared/"{{ sid }}"/hdbclient/hdbsql -i "{{ number }}" -u SYSTEM -p "{{ system_user_password }}" -n localhost:3"{{ number }}"13 "backup data for {{ sid }} using file ('COMPLETE_DATA_BACKUP')"
@@ -86,4 +85,4 @@
       debug:
         var: system_replication_state.stdout_lines
 
-  when: srstate_primary.stdout_lines|first == "this system is not a system replication site"
+  when: srstate_primary.stdout_lines | regex_search('mode:\\s+none')

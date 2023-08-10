@@ -1,6 +1,11 @@
 ---
 # tasks file for physical-server-preconfigure
 
+- import_tasks: 00-hw-generation-check.yml
+  tags:
+    - role::physical-server-preconfigure-local
+    - role::physical-server-preconfigure-local::hw-generation-check
+
 - import_tasks: 01-power-state.yml
   tags:
     - role::physical-server-preconfigure-local

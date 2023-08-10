@@ -1,4 +1,8 @@
 ---
+- name: Sleep for 30 seconds and continue with play
+  wait_for:
+    timeout: 30
+  delegate_to: localhost
 
 - name: System Replication Status Check
   shell: su - "{{ sid | lower }}adm" -c "/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_state"

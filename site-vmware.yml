@@ -12,9 +12,12 @@
   gather_facts: no
 
   vars:
-          installation_media: rhel8-6-Custom.iso
-          iso_datastore: SVT_DS01
+          installation_media: rhel9-2-Custom.iso
+          iso_datastore: TEMP-DS02
           datastore_iso_directory: ISO
+
+          # Enable FIPS 140-2 is a security standard for cryptographic modules / ture Or false
+          fips_mode: true
 
           # HANA Operating System Firewall / ture Or false
           firewall: false
@@ -24,29 +27,35 @@
           pam_module: google-authenticator-libpam-1.09-15.2.x86_64.rpm
 
           # Vmware Virtual Center Credentails
-          vcenter_hostname: 10.254.254.6
-          vcenter_username: administrator@vsphere.local
-          vcenter_password: XXXXXXXX
+          vcenter_hostname: xxxxx.hpelab.local
+          vcenter_username: xxxx@hpelab.local
+          vcenter_password: xxxxxxxx
 
           # Sap Servers Hostname / IP Informations
-          fqdn: hpetrlab.local
+          fqdn: hpelab.local
 
           # Mail Relay Host / Admin Mail Address
-          relayhost: 10.254.254.10
-          recipientmail: emrebaykal@gmail.com
-          sendermail: sap@hpetrlab.local
-          mail_domain: hpetrlab.local
+          # relayhost: smtp.office365.com If Customer using relay mail to Office 365
+          relayhost: smtp.office365.com
+          recipientmail: sapl@hpelab.local
+          sendermail: sap@hpelab.local
+          # sendermail_password: sender mail password If Customer using relay mail to Office 365, oherwise keep blank
+          sendermail_password: xxxxxx
+          mail_domain: hpelab.local
 
           # Remote Sys Log Server // Keep Blank if not rsyslog server desired
-          rsys_log_srv: 10.254.254.10
+          rsys_log_srv: xx.xxx.xx.xx
           rsys_log_srv_port: 514
+          # Transport Protocal May use tcp or udp
+          rsys_protocol: udp
 
           # Time Sync Parameters
           ntp_servers:
-            - 10.254.254.10
-            - 10.254.254.11
+            - xx.xx.xx.xx
+            - xx.xx.xx.xx
 
           # Monitoring Thresholds
+          monitoring: true 
           # CPU Usage % Threshold
           cpu_threshold: 85
           # Memory Usage % Threshold
@@ -58,11 +67,11 @@
           oneview_ip: XXX.XXX.XXX.XXX
           oneview_username: administrator
           oneview_password: xxxxxxxxxx
-          email_sender: server@hpe.com
+          email_sender: emre.baykal@hpelab.local
 
           # Hana StoreOnce Catalyst Plug In Config
           catalyst_plugin: HPE_StoreOnce_Catalyst_Plug_in_2.2.0_for_SAP_HANA_Linux_EH991-91007.tar.gz
-          storeonce_ip: 10.254.254.201
+          storeonce_ip: XXX.XXX.XXX.XXX
           storeonce_username: Admin
           storeonce_password: XXXXXX
           catalyst_client_password: XXXXX
@@ -70,10 +79,10 @@
 
           # Hana Installation files
           hana_deployment:
-              server: IMDB_SERVER20_063_0-80002031.SAR
-              client: IMDB_CLIENT20_013_22-80002082.SAR
-              sapcar: SAPCAR_1115-70006178.EXE
-              hostagent: saphostagentrpm_57-80004822.rpm
+              server: IMDB_SERVER20_070_0-80002031.SAR
+              client: IMDB_CLIENT20_016_26-80002082.SAR
+              sapcar: SAPCAR_1324-80000935.EXE
+              hostagent: saphostagentrpm_175-20005731.rpm
               spp: P26228_001_spp-2019.12.0-SPP2019120.2019_1209.4.iso
               source: /home/hpe/ansible/ansible-sap-hana-deploy-rhel/setup/html/media
               destination: /setup

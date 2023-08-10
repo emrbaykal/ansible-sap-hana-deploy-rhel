@@ -1,0 +1,73 @@
+---
+
+  - name: Sleep for 300 seconds and continue with play
+    wait_for:
+      timeout: 300
+    delegate_to: localhost
+
+
+  - name: Gathering Local Server facts
+    setup:
+    register: setup_info
+    run_once: true
+    delegate_to: localhost
+
+
+  - name: Show Deployment Server IP Address Information
+    debug:
+      msg: "Local Ip Addres is: {{ setup_info.ansible_facts.ansible_default_ipv4.address }}"
+    run_once: true
+
+
+  - name: Starting Internal NFS Server
+    service:
+      name: nfs-kernel-server
+      state: restarted
+    run_once: true
+    become: yes
+    delegate_to: localhost
+
+
+  - name: Enable Virtual Media Service
+    uri:
+      url: "https://{{ server_hardware_rmc_ip }}/redfish/v1/Systems/{{ pnum }}"
+      method: PATCH
+      return_content: yes
+      body: "{\"VirtualMediaConfig\": {\"ServiceEnabled\": true}}"
+      body_format: json
+      validate_certs: no
+      user: "{{ server_hardware_username }}"
+      password: "{{ server_hardware_password }}"
+      force_basic_auth: yes
+      status_code: 200
+    delegate_to: localhost
+
+
+  - name: Connect Virtual Media
+    uri:
+      url: "https://{{ server_hardware_rmc_ip }}/redfish/v1/Systems/{{ pnum }}/VirtualMedia/CD0/Actions/VirtualMedia.InsertMedia"
+      method: POST
+      return_content: yes
+      body: "{\"TransferProtocolType\": \"NFS\", \"Image\": \"nfs://{{ setup_info.ansible_facts.ansible_default_ipv4.address }}/home/hpe/ansible/ansible-sap-hana-deploy-rhel/setup/html/media/{{ installation_media }}\"}"
+      body_format: json
+      validate_certs: no
+      user: "{{ server_hardware_username }}"
+      password: "{{ server_hardware_password }}"
+      force_basic_auth: yes
+      status_code: 202
+    delegate_to: localhost
+
+
+  - name: ILO REST POST Rebbot Server
+    uri:
+      url: "https://{{ server_hardware_rmc_ip }}/redfish/v1/Systems/{{ pnum }}/Actions/ComputerSystem.Reset"
+      method: POST
+      return_content: yes
+      body: "{\"ResetType\": \"ForceRestart\"}"
+      body_format: json
+      validate_certs: no
+      user: "{{ server_hardware_username }}"
+      password: "{{ server_hardware_password }}"
+      force_basic_auth: yes
+      status_code: 200
+    delegate_to: localhost

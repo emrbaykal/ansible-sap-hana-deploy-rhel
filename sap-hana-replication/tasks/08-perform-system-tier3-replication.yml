@@ -1,0 +1,29 @@
+---
+
+- name: Sleep for 30 seconds and continue with play
+  wait_for:
+    timeout: 30
+  delegate_to: localhost
+
+- name: Enabling System Replication on Slave Node
+  shell: su - "{{ sid | lower }}adm" -c "/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_register --remoteHost={{ secondary_server['hostname'] }} --remoteInstance={{ number }} --replicationMode={{ tier3_replication_type }} --name={{ tertiary_server['hostname'] }} --operationMode={{ operation_mode }} --force_full_replica"
+  args:
+    executable: /bin/bash
+  register: tertiary_system_replication
+  retries: 3
+  delay: 10
+  until: tertiary_system_replication.rc == 0
+
+- name: Enabling System Replication on Tertiary Node Status
+  debug:
+    var: tertiary_system_replication.stdout_lines
+
+- name: Start HANA DB on Tertiary node
+  command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB start"
+  become: yes
+  become_user: "{{ sid | lower }}adm"
+  register: tertiary_start_db
+
+- name: Tertiary DB Service Result
+  debug:
+    var: tertiary_start_db.stdout_lines

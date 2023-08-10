@@ -1,0 +1,75 @@
+---
+
+- name: Sleep for 30 seconds and continue with play
+  wait_for:
+    timeout: 30
+  delegate_to: localhost
+
+- name: Get System-replication State
+  shell: |
+    su - "{{ sid|lower }}adm" -c '/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_state'
+  register: srstate_tiear3_secondary
+  changed_when: false
+
+- name: Secondary System Replication
+  block:
+
+    - name: "Make sure tertiary server IP address is in /etc/hosts"
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ tertiary_server['public_ip'] }} {{ tertiary_server['hostname'] }}.{{ fqdn }} {{ tertiary_server['hostname'] }}"
+        state: present
+
+    - name: Stop HANA DB on secondary node
+      command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB stop"
+      become: yes
+      become_user: "{{ sid | lower }}adm"
+      register: second_stop_db
+
+    - name: Secondary DB Service Result
+      debug:
+        var: second_stop_db.stdout_lines
+
+    - name: "/hana/shared/{{ sid }}/global/hdb/custom/config/global.ini"
+      lineinfile:
+        dest: /hana/shared/{{ sid }}/global/hdb/custom/config/global.ini
+        insertafter: "{{ secondary_server['replication_ip'] }} = {{ secondary_server['hostname'] }}"
+        line: "{{ tertiary_server['replication_ip'] }} = {{ tertiary_server['hostname'] }}"
+
+    - name: Start HANA DB on Secondary node
+      command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB start"
+      become: yes
+      become_user: "{{ sid | lower }}adm"
+      register: second_start_db
+
+    - name: Secondary DB Service Result
+      debug:
+        var: second_start_db.stdout_lines
+
+    - name: Sleep for 15 seconds and continue with play
+      wait_for:
+        timeout: 15
+      delegate_to: localhost
+
+    - name: Enabling System Replication for the on Secondary Node
+      shell: su - "{{ sid | lower }}adm" -c "/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_enable --name={{ secondary_server['hostname'] }}"
+      args:
+        executable: /bin/bash
+      register: system_replication
+
+    - name: Enabling System Replication Status
+      debug:
+        var: system_replication.stdout_lines
+
+    - name: Check Database System Replication Status Command
+      shell: su - "{{ sid | lower }}adm" -c "/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_state"
+      args:
+        executable: /bin/bash
+      register: system_replication_state
+
+    - name: Check Database System Replication Status
+      debug:
+        var: system_replication_state.stdout_lines
+
+  when: srstate_tiear3_secondary.stdout_lines | regex_search('is\s+secondary\/consumer\s+system:\\s+true')
+

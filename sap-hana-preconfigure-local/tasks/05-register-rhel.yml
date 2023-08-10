@@ -14,24 +14,18 @@
         validate_certs: no
         status_code: 200
 
-    - name: Download bootstrap.py
-      get_url:
-        url: http://{{ sat_fqdn }}/pub/bootstrap.py
-        dest: /root/bootstrap.py
-        mode: 0755
+    - name: Install katello-ca-consumer-latest.noarch.rpm package 
+      dnf:
+       name: 'https://{{ sat_fqdn }}/pub/katello-ca-consumer-latest.noarch.rpm'
+       validate_certs: no
+       state: present
 
     - name: Register Servers To the satellite Prod Host Group
-      shell: /usr/libexec/platform-python bootstrap.py -l {{ sat_user }} -p {{ sat_passwd }} -s {{ sat_fqdn }} -o "{{ sat_org }}" -L {{ sat_loc }} -g "{{ sat_host_grp }}" -a "{{ sat_act_key }}" -f
-      no_log: true
-      ignore_errors: true
-
-    - name: Applying the RHEL release lock
-      shell: |
-          rm -rf /var/cache/dnf
-
-          subscription-manager release --set={{ rhel_rlease }}
-      args:
-       warn: false
+      redhat_subscription:
+       state: present
+       activationkey: "{{ sat_act_key }}"
+       org_id: "{{ sat_org }}"
+       release: "{{ rhel_rlease }}"
 
     - name: Check Release Lock Setting
       shell: subscription-manager release --show
@@ -41,7 +35,7 @@
       debug:
         msg: "{{ release.stdout_lines }}"
 
-    - name: Enabling required repositories
+    - name: Enabling required repositories For RHEL8
       shell: |
           subscription-manager repos --disable="*"
 
@@ -51,6 +45,19 @@
           --enable="rhel-8-for-$(uname -m)-sap-solutions-e4s-rpms" \
           --enable="rhel-8-for-$(uname -m)-sap-netweaver-e4s-rpms" \
           --enable="satellite-tools-6.9-for-rhel-8-$(uname -m)-e4s-rpms" \
+      when: ansible_distribution_major_version == "8"
+
+    - name: Enabling required repositories For RHEL9
+      shell: |
+          subscription-manager repos --disable="*"
+
+          subscription-manager repos \
+          --enable="rhel-9-for-$(uname -m)-baseos-e4s-rpms" \
+          --enable="rhel-9-for-$(uname -m)-appstream-e4s-rpms" \
+          --enable="rhel-9-for-$(uname -m)-sap-solutions-e4s-rpms" \
+          --enable="rhel-9-for-$(uname -m)-sap-netweaver-e4s-rpms" \
+          --enable="satellite-tools-6.9-for-rhel-9-$(uname -m)-e4s-rpms" \
+      when: ansible_distribution_major_version == "9" 
 
     - name: Check Registered Repository status
       shell: subscription-manager repos --list-enabled
@@ -67,19 +74,17 @@
   - name: RHN Subscription
     block:
 
-    #- name: Check connectivity https://access.redhat.com and it returns a status 200
-    #  uri:
-    #    url: https://access.redhat.com
-    #    status_code: 200
+    - name: Check connectivity https://access.redhat.com and it returns a status 200
+      uri:
+        url: https://access.redhat.com
+        status_code: 200
 
     - name: Register Servers To the access.redhat.com site
-      shell: subscription-manager register --org={{ rhn_org_id }} --activationkey={{ rhn_act_key }}
-
-    - name: Applying the RHEL release lock
-      shell: |
-          rm -rf /var/cache/dnf
-
-          subscription-manager release --set={{ rhel_rlease }}
+      redhat_subscription:
+       state: present
+       activationkey: "{{ rhn_act_key }}"
+       org_id: "{{ rhn_org_id }}"
+       release: "{{ rhel_rlease }}"
 
     - name: Check Release Lock Setting
       shell: subscription-manager release --show
@@ -89,7 +94,7 @@
       debug:
         msg: "{{ release.stdout_lines }}"
 
-    - name: Enabling required repositories
+    - name: Enabling required repositories For RHEL8
       shell: |
           subscription-manager repos --disable="*"
 
@@ -98,6 +103,18 @@
           --enable="rhel-8-for-$(uname -m)-appstream-e4s-rpms" \
           --enable="rhel-8-for-$(uname -m)-sap-solutions-e4s-rpms" \
           --enable="rhel-8-for-$(uname -m)-sap-netweaver-e4s-rpms"
+      when: ansible_distribution_major_version == "8"
+
+    - name: Enabling required repositories For RHEL9
+      shell: |
+          subscription-manager repos --disable="*"
+
+          subscription-manager repos \
+          --enable="rhel-9-for-$(uname -m)-baseos-e4s-rpms" \
+          --enable="rhel-9-for-$(uname -m)-appstream-e4s-rpms" \
+          --enable="rhel-9-for-$(uname -m)-sap-solutions-e4s-rpms" \
+          --enable="rhel-9-for-$(uname -m)-sap-netweaver-e4s-rpms"
+      when: ansible_distribution_major_version == "9"
 
     - name: Check Registered Repository status
       shell: subscription-manager repos --list-enabled

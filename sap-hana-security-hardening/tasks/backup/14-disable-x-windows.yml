@@ -1,4 +1,0 @@
----
-
-   - name: Disable X Windows Startup By Setting Default Target
-     command: systemctl set-default multi-user.target

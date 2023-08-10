@@ -1,0 +1,63 @@
+---
+
+- name: System Replication State Check
+  shell: su - "{{ sid | lower }}adm" -c "python /usr/sap/{{ sid }}/HDB{{ number }}/exe/python_support/systemReplicationStatus.py"
+  args:
+    executable: /bin/bash
+  changed_when: false
+  register: system_replication_state
+  delegate_to: "{{ primary_server['hostname'] }}"
+  failed_when: ( system_replication_state.rc < 10 ) or ( system_replication_state.rc > 15 )
+
+- name: System Replication State
+  debug:
+    var: system_replication_state.stdout_lines
+
+- name: Create SAP Hana Tier3 Replication
+  pause:
+    prompt: Please confirm you want to Create SAP Hana Tier3 Replication! Press return to continue. Press Ctrl+c and then "a" to abort
+
+- name: get system-replication state
+  shell: |
+    su - "{{ sid|lower }}adm" -c '/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_state'
+  register: srstate_tier3_primary
+  changed_when: false
+
+- name: Prepare Primary System to Tiear3 Replication
+  block:
+    - debug:
+        msg: This site is primary
+
+    - name: "Make sure Tertiary server IP address is in /etc/hosts"
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ tertiary_server['public_ip'] }} {{ tertiary_server['hostname'] }}.{{ fqdn }} {{ tertiary_server['hostname'] }}"
+        state: present
+
+    - name: Stop HANA DB on primary node
+      command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB stop"
+      become: yes
+      become_user: "{{ sid | lower }}adm"
+      register: prim_stop_db
+
+    - name: Primary DB Service Result
+      debug:
+        var: prim_stop_db.stdout_lines
+
+    - name: "/hana/shared/{{ sid }}/global/hdb/custom/config/global.ini"
+      lineinfile:
+        dest: /hana/shared/{{ sid }}/global/hdb/custom/config/global.ini
+        insertafter: "{{ secondary_server['replication_ip'] }} = {{ secondary_server['hostname'] }}"
+        line: "{{ tertiary_server['replication_ip'] }} = {{ tertiary_server['hostname'] }}"
+
+    - name: Start HANA DB on primary node
+      command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB start"
+      become: yes
+      become_user: "{{ sid | lower }}adm"
+      register: prim_start_db
+
+    - name: Primary DB Service Result
+      debug:
+        var: prim_start_db.stdout_lines
+
+  when: srstate_tier3_primary.stdout_lines | regex_search('mode:\\s+primary')

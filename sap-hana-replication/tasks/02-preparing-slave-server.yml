@@ -1,24 +1,23 @@
 ---
-
-- name: "Make sure secondary server IP address is in /etc/hosts"
-  lineinfile:
-    path: /etc/hosts
-    line: "{{ primary_server['public_ip'] }} {{ primary_server['hostname'] }}.{{ fqdn }} {{ primary_server['hostname'] }}"
-    state: present
+- name: Sleep for 30 seconds and continue with play
+  wait_for:
+    timeout: 30
+  delegate_to: localhost
 
 - name: get system-replication state
   shell: |
-    su - "{{ sid|lower }}adm" -c 'python  /usr/sap/{{ sid }}/HDB{{ number }}/exe/python_support/systemReplicationStatus.py'
+    su - "{{ sid|lower }}adm" -c '/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_state'
   register: srstate_secondary
   changed_when: false
-  failed_when: ( srstate_secondary.rc < 10 ) or ( srstate_secondary.rc > 15 )
-
-- name: debug
-  debug:
-    msg: "{{ srstate_secondary.stdout_lines|first }}"
 
 - name: Secondary System Replication
   block:
+   - name: "Make sure secondary server IP address is in /etc/hosts"
+     lineinfile:
+       path: /etc/hosts
+       line: "{{ primary_server['public_ip'] }} {{ primary_server['hostname'] }}.{{ fqdn }} {{ primary_server['hostname'] }}"
+       state: present
+    
    - name: Stop HANA DB on slave node
      command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB stop"
      become: yes
@@ -95,4 +94,4 @@
        state: absent
      delegate_to: localhost
 
-  when: srstate_secondary.stdout_lines|first == "this system is not a system replication site"
+  when: srstate_secondary.stdout_lines | regex_search('mode:\\s+none')

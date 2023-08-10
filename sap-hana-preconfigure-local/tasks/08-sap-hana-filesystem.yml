@@ -1,20 +1,22 @@
 ---
-
 # Configure Local Mount Points
 
 - name: Megaraid Card Virtual Drive Config
   block:
 
-    - name: Add Virtual Drive For HANA DB
-      command: "/opt/hpe/storcli/storcli64 /c0 add vd type=r5 name=HANA drives={{ disk_drives }}"
+    #    - name: Drive state to unconfigured good
+    #  command: "/opt/MegaRAID/storcli/storcli64 /c0/e{{ disk_controller }}/s{{ disk_drives }} set good"
 
-    - name: sleep for 600 seconds and continue with play
+    - name: Add Virtual Drive For HANA DB
+      command: "/opt/MegaRAID/storcli/storcli64 /c0 add vd type=r5 name=HANA drives={{ disk_controller }}:{{ broadcom_megaraid_disks }}"
+
+    - name: sleep for 30 seconds and continue with play
       wait_for:
-        timeout: 600
+        timeout: 30
       delegate_to: localhost
 
     - name: Show Virtual Drive Informations
-      command: "/opt/hpe/storcli/storcli64 /c0/vall show"
+      command: "/opt/MegaRAID/storcli/storcli64 /c0/vall show"
       register: virtual_drives
 
     - name: List Virtual Drives
@@ -23,17 +25,32 @@
 
   when: broadcom_megaraid == true
 
-- name: Create "{{ hana_disks['partition'] }}" parted partition
+- name: Run shell command to find Suitable SAP Hana Disk
+  shell: lsblk -b -n -o NAME,SIZE | awk '$2 > ("{{ hanavols.hana_shared.size}} + {{ hanavols.hana_data.size}} + {{ hanavols.hana_logs.size}} + {{ hanavols.usr_sap.size}} ")*1024*1024*1024 { print $1 }'
+  register: sap_hana_disk_raw
+  changed_when: false
+
+- name: Parse Sap Hana Disk
+  set_fact:
+    hana_disk: "{{ sap_hana_disk_raw.stdout }}"
+  when: sap_hana_disk_raw.stdout | length > 0
+
+- name: Display Suitable Hana Disk
+  debug:
+    msg: "Sap Hana disk found on {{ inventory_hostname }}: {{ hana_disk }}"
+  when: sap_hana_disk_raw.stdout | length > 0
+
+- name: Create "/dev/{{ hana_disk }}" parted partition
   parted:
-    device: "{{ hana_disks['partition'] }}"
+    device: "/dev/{{ hana_disk }}"
     number: 1
     label: gpt
     state: present
 
-- name: Create a volume group on top of {{ hana_disks['partition'] }}1
+- name: Create a volume group on top of /dev/{{ hana_disk }}1
   lvg:
     vg: "{{ hana_disks['volume_group'] }}"
-    pvs: "{{ hana_disks['partition'] }}1"
+    pvs: "/dev/{{  hana_disk }}1"
 
 - name: Create a lv_hana_shared logical volume
   lvol:

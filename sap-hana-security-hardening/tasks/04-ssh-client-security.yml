@@ -1,0 +1,132 @@
+---
+
+- name: RHEL8 SSH Server Hardening
+  block:
+
+    - name: OpenSSH client security settings
+      replace:
+        dest=/etc/ssh/sshd_config
+        regexp="{{ item.pname }}"
+        replace="{{ item.value }}"
+      with_items:
+        - { pname: '^PermitRootLogin\syes', value: 'PermitRootLogin no'}
+        - { pname: '^GSSAPIAuthentication\syes', value: 'GSSAPIAuthentication no'}
+        - { pname: '(?i)^#?PermitEmptyPasswords.*', value: 'PermitEmptyPasswords no'}
+        - { pname: '(?i)^#?IgnoreRhosts.*', value: 'IgnoreRhosts yes'}
+        - { pname: '(?i)^X11Forwarding.*', value: 'X11Forwarding no'}
+        - { pname: '(?i)^#?AllowTcpForwarding.*', value: 'AllowTcpForwarding no'}
+        - { pname: '(?i)^#?MaxAuthTries.*', value: 'MaxAuthTries 4'}
+        - { pname: '(?i)^#?MaxSessions.*', value: 'MaxSessions 8'}
+        - { pname: '(?i)^#?PrintLastLog.*', value: 'PrintLastLog yes'}
+        - { pname: '(?i)^#?PermitUserEnvironment.*', value: 'PermitUserEnvironment no'}
+        - { pname: '(?i)^#?LoginGraceTime.*', value: 'LoginGraceTime 60'}
+
+    - name: Assign SSH Allowed Users
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "{{ item }}"
+      with_items:
+        - 'AllowUsers oper'
+        - 'maxstartups 10:30:60'
+
+    - name: Use Only Strong Ciphers And Mac Hashes
+      blockinfile:
+        path: /etc/ssh/sshd_config
+        marker: "## {mark} added by ansible (Strong Ciphers And Mac Hashes Parameters)"
+        content: |
+                #
+                # Use Storange Ciphers
+                Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+                # Use Strong MAC Hashes
+                MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
+                #Use Strong Kex Algorthims
+                KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group14-sha256,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256
+
+  when: ansible_distribution_major_version == "8"
+
+- name: RHEL9 SSH Server Hardening
+  block:
+     - name: Clear Deduplicate values from /etc/ssh/sshd_config
+       lineinfile:
+         path: /etc/ssh/sshd_config
+         create: false
+         regexp: "{{ item }}"
+         state: absent
+       with_items:
+         - (?i)^\s*{{ "HostbasedAuthentication"| regex_escape }}\s+
+         - (?i)^\s*{{ "PermitEmptyPasswords"| regex_escape }}\s+ 
+         - (?i)^\s*{{ "GSSAPIAuthentication"| regex_escape }}\s+  
+         - (?i)^\s*{{ "KerberosAuthentication"| regex_escape }}\s+
+         - (?i)^\s*{{ "PermitRootLogin"| regex_escape }}\s+
+         - (?i)^\s*{{ "RekeyLimit"| regex_escape }}\s+
+         - (?i)^\s*{{ "IgnoreRhosts"| regex_escape }}\s+
+         - (?i)^\s*{{ "X11Forwarding"| regex_escape }}\s+
+         - (?i)^\s*{{ "AllowTcpForwarding"| regex_escape }}\s+
+         - (?i)^\s*{{ "MaxAuthTries"| regex_escape }}\s+
+         - (?i)^\s*{{ "MaxSessions"| regex_escape }}\s+
+         - (?i)^\s*{{ "PrintLastLog"| regex_escape }}\s+
+         - (?i)^\s*{{ "PermitUserEnvironment"| regex_escape }}\s+
+         - (?i)^\s*{{ "LoginGraceTime"| regex_escape }}\s+
+         - (?i)^\s*{{ "AllowUsers"| regex_escape }}\s+
+         - (?i)^\s*{{ "maxstartups"| regex_escape }}\s+
+
+     - name: Check if /etc/ssh/sshd_config.d/50-redhat.conf exists
+       stat:
+          path: /etc/ssh/sshd_config.d/50-redhat.conf 
+       register: etc_ssh_sshd_config_d_50_redhat_conf
+
+
+     - name: Clear Deduplicate values from /etc/ssh/sshd_config.d/50-redhat.conf
+       lineinfile:
+         path: /etc/ssh/sshd_config.d/50-redhat.conf
+         create: false
+         regexp: "{{ item }}"
+         state: absent
+       with_items:
+         - (?i)^\s*{{ "HostbasedAuthentication"| regex_escape }}\s+
+         - (?i)^\s*{{ "PermitEmptyPasswords"| regex_escape }}\s+ 
+         - (?i)^\s*{{ "GSSAPIAuthentication"| regex_escape }}\s+  
+         - (?i)^\s*{{ "KerberosAuthentication"| regex_escape }}\s+
+         - (?i)^\s*{{ "PermitRootLogin"| regex_escape }}\s+
+         - (?i)^\s*{{ "RekeyLimit"| regex_escape }}\s+
+         - (?i)^\s*{{ "IgnoreRhosts"| regex_escape }}\s+
+         - (?i)^\s*{{ "X11Forwarding"| regex_escape }}\s+
+         - (?i)^\s*{{ "AllowTcpForwarding"| regex_escape }}\s+
+         - (?i)^\s*{{ "MaxAuthTries"| regex_escape }}\s+
+         - (?i)^\s*{{ "MaxSessions"| regex_escape }}\s+
+         - (?i)^\s*{{ "PrintLastLog"| regex_escape }}\s+
+         - (?i)^\s*{{ "PermitUserEnvironment"| regex_escape }}\s+
+         - (?i)^\s*{{ "LoginGraceTime"| regex_escape }}\s+
+         - (?i)^\s*{{ "AllowUsers"| regex_escape }}\s+
+         - (?i)^\s*{{ "maxstartups"| regex_escape }}\s+
+       when: etc_ssh_sshd_config_d_50_redhat_conf.stat.exists
+
+     - name: Insert correct line to /etc/ssh/sshd_config.d/01-complianceascode-reinforce-os-defaults.conf
+       blockinfile:
+         path: /etc/ssh/sshd_config.d/01-complianceascode-reinforce-os-defaults.conf
+         create: true
+         marker: "## {mark} added by ansible (Ensure that required SSH Security hardening parameters)"
+         content: |
+                  HostbasedAuthentication no
+                  PermitEmptyPasswords no
+                  GSSAPIAuthentication no
+                  KerberosAuthentication no
+                  PermitRootLogin no
+                  RekeyLimit 1G 1h
+                  IgnoreRhosts yes
+                  X11Forwarding no
+                  AllowTcpForwarding no
+                  MaxAuthTries 4
+                  MaxSessions 8
+                  PrintLastLog yes
+                  PermitUserEnvironment no
+                  LoginGraceTime 60
+                  AllowUsers oper
+                  maxstartups 10:30:60
+      
+     - name: Remove 01-permitrootlogin.conf 
+       file:
+         path: /etc/ssh/sshd_config.d/01-permitrootlogin.conf
+         state: absent
+
+  when: ansible_distribution_major_version == "9"

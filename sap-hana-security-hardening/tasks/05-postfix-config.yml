@@ -1,0 +1,101 @@
+---
+
+   - name: Check Current Status Of FIPS Mode
+     command: /usr/bin/fips-mode-setup --check
+     register: is_fips_enabled_postfix
+     changed_when: false
+     failed_when: false
+
+   - name: Install Postfix 
+     package:
+       name:  postfix
+       state: present
+      
+   - name: Configure mail forwarding for root user Local SMTP Server
+     template:
+       src: main.j2
+       dest: /etc/postfix/main.cf
+       owner: root
+       group: root
+       mode: 0644
+       backup: yes
+     when: relayhost != "smtp.office365.com"
+
+   - name: Configure mail forwarding for root user to smtp.office365.com
+     block:
+       - name: Install Required Packages For Office365  
+         package: 
+           name: "{{ item }}" 
+           state: present
+         with_items:
+           - cyrus-sasl-plain
+           - cyrus-sasl-md5
+           - s-nail
+
+       - name: Create main.cf File
+         template:
+           src: main_office365.j2
+           dest: /etc/postfix/main.cf
+           owner: root
+           group: root
+           mode: 0644
+           backup: yes
+
+       - name: Insert FIPS Mode Required lines to /etc/postfix/main.cf
+         blockinfile:
+           path: /etc/postfix/main.cf
+           create: true
+           marker: "## {mark} added by ansible (Ensure that required FIP Mode Required Lines)"
+           content: |
+                     smtp_tls_fingerprint_digest = sha256
+                     smtpd_tls_fingerprint_digest = sha256
+         when: is_fips_enabled_postfix.stdout.find('FIPS mode is enabled.') == 0
+
+       - name: Configure "sasl_passwd" 
+         lineinfile:
+           path: /etc/postfix/sasl_passwd
+           line: "[smtp.office365.com]:587 {{ sendermail }}:{{ sendermail_password }}"
+           create: true
+         notify: compile_sasl_passwd
+
+     when: relayhost == "smtp.office365.com"
+
+   - name: Mail From 
+     lineinfile:
+        path: /etc/postfix/generic
+        create: true
+        line: "root@{{ inventory_hostname }}.{{ fqdn }} {{ sendermail }}"
+     notify: postmap_generic
+
+   - name: Root User Canonical Map
+     lineinfile:
+       path: /etc/postfix/canonical
+       create: true
+       line: "root {{ sendermail }}"
+     notify: postmap
+
+   - name: Force postmap services
+     meta: flush_handlers
+
+   - name: Change Root's Email
+     replace:
+       dest: /etc/aliases
+       regexp: "^#root+(.*)?$"
+       replace: "root:  {{ recipientmail }}"
+     notify:
+       - newaliases
+       - postfix
+
+   - name: force all notified handlers to run at this point, not waiting for normal sync points
+     meta: flush_handlers
+
+   - name: Enable Postfix Mail Service
+     systemd:
+       name: postfix
+       state: restarted
+       enabled: yes
+
+   - name: Test Mail Forwarding
+     shell: 'mail -s "This email is a test message using Postfix from {{ inventory_hostname }}.{{ fqdn }}" {{ recipientmail }}  < /dev/null'
+
+

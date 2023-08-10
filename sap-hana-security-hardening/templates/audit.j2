@@ -1,56 +1,60 @@
 ### auditd.rules Config - Managed using Ansible
 ## Please don't edit manually.
 
-## Make the loginuid immutable. This prevents tampering with the auid.
---loginuid-immutable 
-
--e 1
--f 1
--b 8192
--r 0
-
+# Remove any existing rules
 -D
 
-# Disabling all “CWD” (current working directory)
--a exclude,always -F msgtype=CWD
+# Make the auditd Configuration Immutable
+-e 2
+
+# Buffer Size
+-b 8192
+
+# Failure Mode
+## Possible values: 0 (silent), 1 (printk, print a failure message), 2 (panic, halt the system)
+-f 1
+
+
+
+# Filters ---------------------------------------------------------------------
+
+
+## Ignore current working directory records
+-a always,exclude -F msgtype=CWD
+
+## Cron jobs fill the logs with stuff we normally don't want (works with SELinux)
+-a never,user -F subj_type=crond_t
+-a never,exit -F subj_type=crond_t
+
+## This prevents chrony from overwhelming the logs
+-a never,exit -F arch=b64 -S adjtimex -F auid=unset -F uid=chrony -F subj_type=chronyd_t
+
+## This is not very interesting and wastes a lot of space if the server is public facing
+-a always,exclude -F msgtype=CRYPTO_KEY_USER
+
+## High Volume Event Filter
+-a never,exit -F arch=b64 -F dir=/dev/shm -k sharedmemaccess
+-a never,exit -F arch=b64 -F dir=/var/lock/lvm -k locklvm
+
+# Rules -----------------------------------------------------------------------
+
 
 # Records Events that Modify Date and Time Information
 -a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change
 -a always,exit -F arch=b64 -S clock_settime -k time-change
 -w /etc/localtime -p wa -k time-change
 
-
-# Record Events that Modify User/Group Information
--w /etc/group -p wa -k identity
--w /etc/passwd -p wa -k identity
--w /etc/gshadow -p wa -k identity
--w /etc/shadow -p wa -k identity
--w /etc/security/opasswd -p wa -k identity
-
 # Record Events that Modify the Systems Network Environment
 -a exit,always -F arch=b64 -S sethostname -S setdomainname -k system-locale
 -w /etc/issue -p wa -k system-locale
 -w /etc/issue.net -p wa -k system-locale
 -w /etc/hosts -p wa -k system-locale
--w /etc/sysconfig/network -p wa -k system-locale
 
-# Record Attempts to Alter Logon and Logout Events
--w /var/log/faillog -p wa -k logins
--w /var/log/lastlog -p wa -k logins
-
-# Record Attempts to Alter Process and Session Initiation Information
--w /var/run/utmp -p wa -k session
--w /var/log/btmp -p wa -k session
--w /var/log/wtmp -p wa -k session
-
-
-# Record Specific Attempts
+# Record Files Specific Attempts
 -w /etc/pam.d/ -k files
 -w /etc/aliases -p wa -k files
 -w /etc/postfix/ -p wa -k files
 -w /etc/ssh/sshd_config -k files
--w /etc/vsftpd.ftpusers -k files
--w /etc/vsftpd.conf -k files
 -w /etc/cron.allow -p wa -k files
 -w /etc/cron.deny -p wa -k files
 -w /etc/cron.d/ -p wa -k files
@@ -59,93 +63,120 @@
 -w /etc/cron.monthly/ -p wa -k files
 -w /etc/cron.weekly/ -p wa -k files
 -w /etc/crontab -p wa -k files
--w /var/spool/cron/root -k files
 -w /etc/login.defs -p wa -k files
--w /etc/securetty -k files
 -w /etc/sysconfig/ -k files
--w /etc/init.d/ -k files
--w /etc/init.d/auditd -p wa -k files
--w /etc/ld.so.conf -p wa -k files
 -w /etc/sysctl.conf -p wa -k files
 -w /etc/sysctl.d/ -p wa -k files
 -w /etc/modprobe.d/ -k files
 
+# Modprobe configuration
+-w /etc/modprobe.conf -p wa -k modprobe
+-w /etc/modprobe.d -p wa -k modprobe
 
-# Ensure auditd Collects Discretionary Access Control Permission Modification Events
--a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod
--a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod
--a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+# Record Events that Modify the System's Discretionary Access Controls 
 
-# Ensure auditd Collects Unauthorized Access Attempts to Files
--a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
--a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+-a always,exit -F arch=b64 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b64 -S chown,fchown,fchownat,lchown -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b64 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=1000 -F auid!=unset -F key=perm_mod
 
-# Ensure auditd Collects Information on Mounting Or Exporting to Media
--a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts
--a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k export
 
-# Ensure auditd Collects Files Deletion Events by User
--a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete
+# At a minimum, the audit system should collect the execution of ACL privileged commands for all users and root.
+-a always,exit -F path=/usr/bin/chacl -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/setfacl -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
 
-# Ensure auditd Collects System Administrator Actions
+# Record File Deletion Events by User
+-a always,exit -F arch=b64 -S rmdir,unlink,unlinkat,rename,renameat -F auid>=1000 -F auid!=unset -F key=delete
+
+# Record Unauthorized Access Attempts Events to Files
+-a always,exit -F arch=b64 -S creat,open,openat,open_by_handle_at,truncate,ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=unset -F key=access
+-a always,exit -F arch=b64 -S creat,open,openat,open_by_handle_at,truncate,ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=unset -F key=access
+
+# Record Information on Kernel Modules Loading and Unloading
+-a always,exit -F arch=b64 -S init_module,delete_module -F key=modules
+
+# Record Attempts to Alter Logon and Logout Events 
+-w /var/log/tallylog -p wa -k logins
+-w /var/log/faillock -p wa -k logins
+-w /var/log/lastlog -p wa -k logins
+
+# Record Information on the Use of Privileged Commands
+-a always,exit -F path=/usr/bin/chage -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/chsh -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/crontab -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/gpasswd -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/kmod -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/mount -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/newgrp -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/sbin/pam_timestamp_check -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/passwd -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/sbin/postdrop -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/sbin/postqueue -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/ssh-agent -F perm=x -F auid>=1000 -F auid!=unset -k privileged-ssh-agent
+-a always,exit -F path=/usr/libexec/openssh/ssh-keysign -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/su -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/sudo -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/bin/umount -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/sbin/unix_chkpwd -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/sbin/unix_update -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/sbin/userhelper -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+-a always,exit -F path=/usr/sbin/usermod -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged
+
+
+#  Ensure auditd Collects Information on Exporting to Media
+-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=unset -F key=export
+
+# Ensure auditd Collects System Administrator Actions - /etc/sudoers
 -w /etc/sudoers -p wa -k actions
--w /etc/sudoers.d -p wa -k scope
+
+# Ensure auditd Collects System Administrator Actions - /etc/sudoers.d/
+-w /etc/sudoers.d/ -p wa -k actions
+
+# Record Events When Privileged Executables Are Run
+-a always,exit -F arch=b64 -S execve -C uid!=euid -F euid=0 -k setuid
+-a always,exit -F arch=b64 -S execve -C gid!=egid -F egid=0 -k setgid
+
+# Record Events that Modify User/Group Information - /etc/group
+-w /etc/group -p wa -k audit_rules_usergroup_modification
+
+# Record Events that Modify User/Group Information - /etc/gshadow
+-w /etc/gshadow -p wa -k audit_rules_usergroup_modification
+
+# Record Events that Modify User/Group Information - /etc/security/opasswd
+-w /etc/security/opasswd -p wa -k audit_rules_usergroup_modification
+
+# Record Events that Modify User/Group Information - /etc/passwd 
+-w /etc/passwd -p wa -k audit_rules_usergroup_modification
+
+# Record Events that Modify User/Group Information - /etc/shadow
+-w /etc/shadow -p wa -k audit_rules_usergroup_modification
 
 
-# Ensure auditd Collects Information on Kernel Module Loading and Unloading
--w /sbin/insmod -p x -k modules
--w /sbin/rmmod -p x -k modules
--w /sbin/modprobe -p x -k modules
--a always,exit -F arch=b64 -S init_module -S delete_module -k modules
+## System startup scripts
+-w /etc/inittab -p wa -k init
+-w /etc/init.d/ -p wa -k init
+-w /etc/init/ -p wa -k init
+
+## Power state
+-w /sbin/shutdown -p x -k power
+-w /sbin/poweroff -p x -k power
+-w /sbin/reboot -p x -k power
+-w /sbin/halt -p x -k power
+
+# Systemd
+-w /bin/systemctl -p x -k systemd
+-w /etc/systemd/ -p wa -k systemd
+-w /usr/lib/systemd -p wa -k systemd
 
 
--w /var/log/messages -p wa -k logins -S all
--w /var/log/wtmp -p wa -k logins -S all
--w /var/log/tallylog -p wa -k logins -S all
--w /etc/login.defs -p wa -k auth -S all
--w /var/log/audit/audit.log -k audit-logs -S all
--w /var/log/audit/audit.log.1 -k audit-logs -S all
--w /var/log/audit/audit.log.2 -k audit-logs -S all
--w /var/log/audit/audit.log.3 -k audit-logs -S all
--w /var/log/audit/audit.log.4 -k audit-logs -S all
--w /etc/audit/auditd.conf -k audit-conf -S all
--w /etc/audit/audit.rules -k audit-conf -S all
+# Software Management ---------------------------------------------------------
 
-# Ensure auditd Collects Information on the Use of Privileged Commands
+# DNF (Fedora/RedHat 8/CentOS 8)
+-w /usr/bin/dnf -p x -k software_mgmt
 
--a always,exit -F path=/sbin/umount.nfs4 -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/sbin/mount.nfs -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/sbin/mount.nfs4 -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/sbin/netreport -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/sbin/umount.nfs -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/sbin/unix_chkpwd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/sbin/pam_timestamp_check -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged
--a always,exit -F path=/bin/ping -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/bin/mount -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/bin/ping6 -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/bin/umount -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/bin/su -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/sbin/lockdev -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/sbin/ccreds_validate -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/sbin/usernetctl -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/sbin/sendmail.sendmail -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/sbin/userhelper -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/sudo -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/gpasswd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/lockfile -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/chfn -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/wall -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/locate -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/write -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/chsh -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/Xorg -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/newgrp -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/crontab -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/at -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/chage -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/ssh-agent -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/sudoedit -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/passwd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
--a always,exit -F path=/usr/bin/startx -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged
+# YAST/Zypper/RPM (SuSE)
+-w /sbin/yast -p x -k software_mgmt
+-w /sbin/yast2 -p x -k software_mgmt
+-w /bin/rpm -p x -k software_mgmt
+-w /usr/bin/zypper -k software_mgmt
 
 # Specific Audits for each Server

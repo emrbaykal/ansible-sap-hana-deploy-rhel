@@ -1,0 +1,31 @@
+# Configure Server BIOS
+
+- name: ILO REST POST BIOS CONFIG
+  uri:
+    url: "https://{{ server_hardware_rmc_ip }}/redfish/v1/Systems/{{ pnum }}/Bios/Settings/"
+    method: PATCH
+    return_content: yes
+    body: "{\"Attributes\": {\"WorkloadProfile\": \"Custom\", \"PowerRegulator\": \"StaticHighPerf\", \"ProcX2Apic\": \"Auto\", \"AdvancedMemProtection\": \"ADDDC\", \"Sriov\": \"Disabled\", \"IntelProcVt\": \"Disabled\", \"IntelProcVtd\": \"Auto\", \"HThread\": \"Enabled\", \"HwPrefetcher\": \"Enabled\", \"MinProcIdlePower\": \"C6\", \"MinProcIdlePkgState\": \"C6Retention\", \"EnergyPerfBias\": \"MaxPerf\", \"IntelUpiPowerManagement\": \"Disabled\", \"SubNumaClustering\": \"Disabled\", \"LocalRemoteThreshold\": \"Auto\", \"MaxMemBusFreqMHz\": \"Auto\", \"UncoreFreqScaling\": \"Auto\", \"EnergyEfficientTurbo\": \"Enabled\", \"MemPatrolScrubbing\": \"Enabled\", \"NumaGroupSizeOpt\": \"Clustered\", \"DcuIpPrefetcher\": \"Enabled\", \"DcuStreamPrefetcher\": \"Enabled\", \"AdjSecPrefetch\": \"Enabled\", \"IntelNicDmaChannels\": \"Enabled\", \"ProcTurbo\": \"Enabled\", \"IntelDmiLinkFreq\": \"Auto\" }}"
+    body_format: json
+    validate_certs: no
+    user: "{{ server_hardware_username }}"
+    password: "{{ server_hardware_password }}"
+    force_basic_auth: yes
+    status_code: 200
+  delegate_to: localhost
+
+
+
+- name: ILO REST POST Rebbot Server
+  uri:
+    url: "https://{{ server_hardware_rmc_ip }}/redfish/v1/Systems/{{ pnum }}/Actions/ComputerSystem.Reset"
+    method: POST
+    return_content: yes
+    body: "{\"ResetType\": \"ForceRestart\"}"
+    body_format: json
+    validate_certs: no
+    user: "{{ server_hardware_username }}"
+    password: "{{ server_hardware_password }}"
+    force_basic_auth: yes
+    status_code: 200
+  delegate_to: localhost

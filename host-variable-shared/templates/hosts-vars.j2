@@ -13,11 +13,7 @@
   #### Host Based Variables ####
   # Redhat Satellite Server Information
   sat_fqdn: {{ item.value.satellite_fqdn }}
-  sat_user: {{ item.value.satellite_user }}
-  sat_passwd: {{ item.value.satellite_password }}
   sat_org: {{ item.value.satellite_organization }}
-  sat_loc: {{ item.value.satellite_location }}
-  sat_host_grp: {{ item.value.satellite_host_group }}
   sat_act_key: {{ item.value.satellite_activation_key }}
   data_interface: {{ item.value.data_interface }}
   rep_interface: {{ item.value.rep_interface }}
@@ -30,6 +26,7 @@
   # Hardware Raid Card type
   broadcom_megaraid: {{ item.value.broadcom_megaraid }}
   broadcom_megaraid_disks: {{ item.value.broadcom_megaraid_disks }}
+  disk_controller: {{ item.value.broadcom_megaraid_controller }}
 
   # OS Data Logical Drive
   OS_LogicalDriveName: OS
@@ -116,8 +113,14 @@
     public_ip: {{ item.value.rep_secondary_public_ip }}
     replication_ip: {{ item.value.rep_secondary_rep_ip }}
 
+  tertiary_server:
+    hostname: {{ item.value.rep_tertiary_hostname }}
+    public_ip: {{ item.value.rep_tertiary_public_ip }}
+    replication_ip: {{ item.value.rep_tertiary_rep_ip }}
+
   # Replication Type ( sync | syncmem | async )
-  replication_type: {{ item.value.replication_type }}
+  tier2_replication_type: {{ item.value.tier2_replication_type }}
+  tier3_replication_type: {{ item.value.tier3_replication_type }}
 
   # Replication Operation Mode ( logreplay )
   operation_mode: {{ item.value.rep_operation_mode }}

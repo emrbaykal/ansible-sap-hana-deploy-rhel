@@ -1,0 +1,23 @@
+---
+
+- name: Get Proliant Server Generation
+  uri:
+    url: "https://{{ server_hardware_ilo_ip }}/redfish/v1/Chassis/1"
+    method: GET
+    return_content: yes
+    body: ""
+    body_format: json
+    validate_certs: no
+    user: "{{ server_hardware_username }}"
+    password: "{{ server_hardware_password }}"
+    force_basic_auth: yes
+    status_code: 200
+  delegate_to: localhost
+  register: hw_model
+
+- set_fact:
+    hw_generation: "{{ hw_model.json.Model }}"
+
+- debug:
+    msg: "Proliant Server Model is: {{ hw_generation }}"
+

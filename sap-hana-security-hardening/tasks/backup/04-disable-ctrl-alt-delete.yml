@@ -1,9 +1,0 @@
----
-
-   - name: Disable Ctrl-Alt-Del
-     file:
-       src: /dev/null
-       dest: /etc/systemd/system/ctrl-alt-del.target
-       owner: root
-       group: root
-       state: link

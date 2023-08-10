@@ -1,25 +1,61 @@
 ---
 # Configure Local Mount Points
+- name: Run shell command to find /usr/sap  SAP Hana Disk
+  shell: lsscsi | grep '\[{{ hana_usr_sap_disks.partition }}\]' | awk '{print $NF}'
+  register: usr_sap_disk_raw
+  changed_when: false
 
-- name: Create a volume group on top of {{ hana_data_disks['partition'] }}
+- name: Parse /usr/sap Sap Hana Disk
+  set_fact:
+    usr_sap_disk: "{{ usr_sap_disk_raw.stdout }}"
+
+- name: Run shell command to find /hana/data  SAP Hana Disk
+  shell: lsscsi | grep '\[{{ hana_data_disks.partition }}\]' | awk '{print $NF}'
+  register: hana_data_disk_raw
+  changed_when: false
+
+- name: Parse /hana/data Sap Hana Disk
+  set_fact:
+    hana_data_disk: "{{ hana_data_disk_raw.stdout }}"
+
+- name: Run shell command to find /hana/log  SAP Hana Disk
+  shell: lsscsi | grep '\[{{ hana_log_disks.partition }}\]' | awk '{print $NF}'
+  register: hana_log_disk_raw
+  changed_when: false
+
+- name: Parse /hana/log Sap Hana Disk
+  set_fact:
+    hana_log_disk: "{{ hana_log_disk_raw.stdout }}"
+
+- name: Run shell command to find /hana/shared  SAP Hana Disk
+  shell: lsscsi | grep '\[{{ hana_shared_disks.partition }}\]' | awk '{print $NF}'
+  register: hana_shared_disk_raw
+  changed_when: false
+
+- name: Parse /hana/shared Sap Hana Disk
+  set_fact:
+    hana_shared_disk: "{{ hana_shared_disk_raw.stdout }}"
+
+##
+- name: Create a volume group on top of {{ hana_data_disk }}
   lvg:
     vg: "{{ hana_data_disks['volume_group'] }}"
-    pvs: "{{ hana_data_disks['partition'] }}"
+    pvs: "{{ hana_data_disk }}"
 
-- name: Create a volume group on top of {{ hana_shared_disks['partition'] }}
+- name: Create a volume group on top of {{ hana_shared_disk }}
   lvg:
     vg: "{{ hana_shared_disks['volume_group'] }}"
-    pvs: "{{ hana_shared_disks['partition'] }}"
+    pvs: "{{ hana_shared_disk }}"
 
-- name: Create a volume group on top of {{ hana_log_disks['partition'] }}
+- name: Create a volume group on top of {{ hana_log_disk }}
   lvg:
     vg: "{{ hana_log_disks['volume_group'] }}"
-    pvs: "{{ hana_log_disks['partition'] }}"
+    pvs: "{{ hana_log_disk }}"
 
-- name: Create a volume group on top of {{ hana_usr_sap_disks['partition'] }}
+- name: Create a volume group on top of {{ usr_sap_disk }}
   lvg:
     vg: "{{ hana_usr_sap_disks['volume_group'] }}"
-    pvs: "{{ hana_usr_sap_disks['partition'] }}"
+    pvs: "{{ usr_sap_disk }}"
 
 - name: Create a lv_hana_shared logical volume
   lvol:

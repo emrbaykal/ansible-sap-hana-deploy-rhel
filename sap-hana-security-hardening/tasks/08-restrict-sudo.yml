@@ -1,0 +1,37 @@
+---
+
+- name: Restrict sudo for normal users
+  replace:
+    dest=/etc/sudoers
+    regexp="{{ item.pname }}"
+    replace="{{ item.value }}"
+  with_items:
+    - { pname: '^ALL\s+ALL=\(ALL\)\s+ALL', value: '#ALL ALL=(ALL) ALL # WARNING! Only use this together with Defaults targetpw !'}
+    - { pname: '^#\s+%wheel\s+ALL=\(ALL\)\s+ALL', value: '%wheel ALL=(ALL) ALL'}
+
+
+- name: Ensure sudo commands use pty & sudo log file exists
+  blockinfile:
+    path: /etc/sudoers
+    create: yes
+    marker: "## {mark} added by ansible (Ensure sudo commands use pty & sudo log file exists)"
+    content: |
+             Defaults use_pty
+             Defaults logfile="/var/log/sudo.log"
+
+- name: Ensure invoking users password for privilege escalation when using sudo
+  lineinfile:
+    dest: /etc/sudoers
+    insertafter: '^Defaults\s+!visiblepw'
+    line: "{{ item }}"
+  with_items:
+    - 'Defaults !rootpw'
+    - 'Defaults !runaspw'
+    - 'Defaults timestamp_timeout=3'
+
+- name: Disallow Configuration to Bypass Password Requirements for Privilege Escalation
+  lineinfile:
+    path: /etc/pam.d/sudo
+    create: false
+    regexp: pam_succeed_if
+    state: absent

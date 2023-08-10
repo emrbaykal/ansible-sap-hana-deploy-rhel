@@ -24,7 +24,6 @@
     become: yes
     run_once: true
     delegate_to: localhost
-    notify: 'Starting Internal Web Site'
 
   - name: Configure Apache sites-available default-ssl.conf
     replace:
@@ -34,10 +33,14 @@
     become: yes
     run_once: true
     delegate_to: localhost
-    notify: 'Starting Internal Web Site'
 
-  - name: "Flush handlers"
-    meta: flush_handlers
+  - name: Starting Internal Web Site
+    service:
+      name: apache2
+      state: restarted
+    run_once: true
+    become: yes
+    delegate_to: localhost
 
   - name: Server Powered Off
     hpilo_boot:

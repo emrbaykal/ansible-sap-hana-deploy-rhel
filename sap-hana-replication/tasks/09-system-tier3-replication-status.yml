@@ -1,0 +1,27 @@
+---
+- name: Sleep for 30 seconds and continue with play
+  wait_for:
+    timeout: 30
+  delegate_to: localhost
+
+- name: Tier3 System Replication Status Check
+  shell: su - "{{ sid | lower }}adm" -c "/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_state"
+  args:
+    executable: /bin/bash
+  register: tertiary_sys_rep_stat
+
+- name: Tier3 System Replication Status
+  debug:
+    var: tertiary_sys_rep_stat.stdout_lines
+
+- name: Tier3 System Replication State Check
+  shell: su - "{{ sid | lower }}adm" -c "python /usr/sap/{{ sid }}/HDB{{ number }}/exe/python_support/systemReplicationStatus.py"
+  args:
+    executable: /bin/bash
+  changed_when: false
+  register: tertiary_system_replication_state
+  failed_when: ( tertiary_system_replication_state.rc < 10 ) or ( tertiary_system_replication_state.rc > 15 )
+
+- name: Tier3 System Replication State
+  debug:
+    var: tertiary_system_replication_state.stdout_lines

@@ -16,8 +16,11 @@
           # If ILO Can access to deployment server via using http protocol
           # You can enable this feature (true/false)
           automate_install: true
-          installation_media: SLE-15-SP4-SAP-x86_64-DVD.iso
+          installation_media: rhel9-2-Custom.iso
 
+          # Enable FIPS 140-2 is a security standard for cryptographic modules / ture Or false
+          fips_mode: true
+          
           # HANA Operating System Firewall / ture Or false
           firewall: false
 
@@ -26,17 +29,22 @@
           pam_module: google-authenticator-libpam-1.09-15.2.x86_64.rpm
 
           # Sap Servers Hostname / IP Informations
-          fqdn: test.dom
+          fqdn: hpelab.local
 
           # Mail Relay Host / Admin Mail Address
-          relayhost: XXX.XXX.XXX.XXX
-          recipientmail: emre.baykal@hpe.com
-          sendermail: test@hpe.com
-          mail_domain: hpe.com
+          # relayhost: smtp.office365.com If Customer using relay mail to Office 365
+          relayhost: smtp.office365.com
+          recipientmail: emre.baykal@hpelab.local
+          sendermail: emre.baykal@hpelab.local
+          # sendermail_password: sender mail password If Customer using relay mail to Office 365, oherwise keep blank
+          sendermail_password: xxxxx
+          mail_domain: hpelab.local
 
           # Remote Sys Log Server // Keep Blank if rsyslog server not desired
           rsys_log_srv: XXX.XXX.XXX.XXX
           rsys_log_srv_port: 514
+          # Transport Protocal May use tcp or udp
+          rsys_protocol: udp
 
           # Time Sync Parameters
           ntp_servers:
@@ -44,6 +52,7 @@
             - XXX.XXX.XXX.XXX
 
           # Monitoring Thresholds
+          monitoring: true
           # CPU Usage % Threshold
           cpu_threshold: 85
           # Memory Usage % Threshold
@@ -55,7 +64,7 @@
           oneview_ip: XXX.XXX.XXX.XXX
           oneview_username: administrator
           oneview_password: xxxxxxxxxxxx
-          email_sender: server@test.dom
+          email_sender: emre.baykal@hpelab.local
 
           # Hana StoreOnce Catalyst Plug In Config
           catalyst_plugin: HPE_StoreOnce_Catalyst_Plug_in_2.2.0_for_SAP_HANA_Linux_EH991-91007.tar.gz

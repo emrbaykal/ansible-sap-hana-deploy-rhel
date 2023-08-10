@@ -64,7 +64,7 @@
            password: "{{ system_admin_password }}"
            host: "{{ ansible_fqdn }}"
            query: "BACKUP DATA USING BACKINT ('/usr/sap/{{ sid }}/SYS/global/hdb/backint/DB_{{ sid }}/first_backup')"
-         when: secondary_server['hostname'] != inventory_hostname
+         when: (secondary_server['hostname'] != inventory_hostname) or (tertiary_server['hostname'] != inventory_hostname)
 
        when: 
          - not catalyst_file_stat.stat.exists

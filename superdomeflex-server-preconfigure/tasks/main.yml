@@ -1,0 +1,30 @@
+---
+# tasks file for superdomeflex-server-preconfigure
+
+- import_tasks: 01-power-state.yml
+  tags:
+    - role::superdomeflex-server-preconfigure
+    - role::superdomeflex-server-preconfigure::power-state
+
+#- import_tasks: 02-logical-drives.yml
+#  tags:
+#    - role::physical-server-preconfigure-shared
+#    - role::physical-server-preconfigure-shared::logical-drives
+#  when: broadcom_megaraid == false
+
+- import_tasks: 03-bios-settings.yml
+  tags:
+    - role::superdomeflex-server-preconfigure
+    - role::superdomeflex-server-preconfigure::bios-settings
+
+- import_tasks: 04-pmem-bios-settings.yml
+  when:  pmem == true
+  tags:
+    - role::superdomeflex-server-preconfigure
+    - role::superdomeflex-server-preconfigure::pmem-bios-settings
+
+- import_tasks: 05-automate-server-install.yml
+  when:  automate_install == true
+  tags:
+    - role::superdomeflex-server-preconfigure
+    - role::superdomeflex-server-preconfigure::automate-server-install

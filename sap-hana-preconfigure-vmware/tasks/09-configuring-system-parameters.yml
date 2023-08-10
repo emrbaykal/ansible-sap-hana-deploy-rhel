@@ -33,8 +33,36 @@
   - { pname: 'net.core.rmem_max', value: '4194304'}
   - { pname: 'net.core.wmem_max', value: '4194304'}
   - { pname: 'net.ipv4.tcp_slow_start_after_idle', value: '0'}
-  - { pname: 'kernel.pid_max', value: '4194304'}
-  - { pname: 'kernel.pid_max', value: '4194304'}
+  - { pname: 'vm.max_map_count', value: '2147483647'}
+
+- name: Configuring Process Resource Limits && Disable Core File Creation For all Users
+  copy:
+    content: |
+              # Number of processes per user
+              @sapsys    hard    nproc    unlimited
+              @sapsys    soft    nproc    unlimited
+              @dba       hard    nproc    unlimited
+              @dba       soft    nproc    unlimited
+
+              # System resource limits
+              @sapsys - nofile 1048576
+              @dba    - nofile 1048576
+              @sdba   - nofile 1048576
+
+              # disable core core file creation for all users
+              * soft core 0
+              * hard core 0
+    dest: /etc/security/limits.d/99-sap.conf
+
+
+- name: Configuring systemd-tmpfiles
+  copy:
+    content: | 
+             # Exclude SAP socket and lock files
+             x /tmp/.sap
+             # Exclude TREX lock file
+             x /tmp/.trex*lock
+    dest: /etc/tmpfiles.d/sap.conf
 
 - name: Gathering service facts
   service_facts:
@@ -54,20 +82,19 @@
     enabled: no
   when: services_state.ansible_facts.services["abrtd-ccpp.service"]|default
 
-
-- name: To disable core core file creation for all users
-  copy:
-    content: |
-             * soft core 0
-             * hard core 0
-    dest: /etc/security/limits.d/99-sap.conf
+- name: Disable Numad Service
+  service:
+    name: numad
+    state: stopped
+    enabled: no
+  when: services_state.ansible_facts.services["numad.service"]|default
 
 - name: Configure CPU Governor for performance
   lineinfile:
     path: /etc/rc.d/rc.local
     line: cpupower frequency-set -g performance
 
-- name: Configuring System Parameters
+- name: Configure Energy Performance Bias 
   template:
     src=files/boot-local
     dest=/etc/init.d/boot.local
@@ -75,13 +102,23 @@
     group=root
     mode=0644
     backup=yes
+  when: ansible_distribution_major_version == "8"
 
-- name: Change grub File Parameters in to /etc/default/grub
+- name: Change grub File Parameters in to /etc/default/grub for RHEL8
   lineinfile:
     path=/etc/default/grub
     regexp="^GRUB_CMDLINE_LINUX="
-    line='GRUB_CMDLINE_LINUX="resume={{ ansible_proc_cmdline.resume }} rd.lvm.lv={{ ansible_proc_cmdline['rd.lvm.lv'].0 }} rd.lvm.lv={{ ansible_proc_cmdline['rd.lvm.lv'].1 }} rhgb quiet crashkernel=auto transparent_hugepage=never numa_balancing=disable intel_idle.max_cstate=1 processor.max_cstate=1"'
+    line='GRUB_CMDLINE_LINUX="resume={{ ansible_proc_cmdline.resume }} rd.lvm.lv={{ ansible_proc_cmdline['rd.lvm.lv'].0 }} rd.lvm.lv={{ ansible_proc_cmdline['rd.lvm.lv'].1 }} crashkernel=auto tsx=on transparent_hugepage=never numa_balancing=disable intel_idle.max_cstate=1 processor.max_cstate=1"'
   register: grub
+  when: ansible_distribution_major_version == "8"
+
+- name: Change grub File Parameters in to /etc/default/grub for RHEL9
+  lineinfile:
+    path=/etc/default/grub
+    regexp="^GRUB_CMDLINE_LINUX="
+    line='GRUB_CMDLINE_LINUX="resume={{ ansible_proc_cmdline.resume }} rd.lvm.lv={{ ansible_proc_cmdline['rd.lvm.lv'].0 }} rd.lvm.lv={{ ansible_proc_cmdline['rd.lvm.lv'].1 }} crashkernel=1G-4G:192M,4G-64G:256M,64G-:512M tsx=on transparent_hugepage=never numa_balancing=disable intel_idle.max_cstate=1 processor.max_cstate=1"'
+  register: grub
+  when: ansible_distribution_major_version == "9"
 
 - name: Run the grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg command to generate the grub configuration file
   command: "grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg"

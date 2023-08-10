@@ -1,0 +1,55 @@
+---
+
+- name: Set rsyslog Parameters tcp in to /etc/rsyslog.d/remote.conf
+  copy:
+     content: |
+         ## Remote rsyslog server configuration made by ansible
+
+         $ModLoad imfile
+         $InputFileName /var/log/audit/audit.log
+         $InputFileTag tag_audit_log:
+         $InputFileStateFile audit_log
+         $InputFileSeverity info
+         $InputFileFacility local6
+         $InputRunFileMonitor
+         $template TimeFormat,"%timereported% %HOSTNAME% %syslogtag%%msg%\n"
+
+         *.notice;auth.info;authpriv.info;auth.info;local6.*        @@{{ rsys_log_srv }}:{{ rsys_log_srv_port }};TimeFormat
+     dest: /etc/rsyslog.d/remote.conf
+  notify: restart_rsyslog_service
+  when:
+    - rsys_log_srv|default
+    - rsys_protocol == "tcp"
+
+- name: Set rsyslog Parameters udp in to /etc/rsyslog.d/remote.conf
+  copy:
+     content: |
+           $ModLoad imfile
+           $InputFileName /var/log/audit/audit.log
+           $InputFileTag tag_audit_log:
+           $InputFileStateFile audit_log
+           $InputFileSeverity info
+           $InputFileFacility local6
+           $InputRunFileMonitor
+           $template TimeFormat,"%timereported% %HOSTNAME% %syslogtag%%msg%\n"
+
+           *.notice;auth.info;authpriv.info;auth.info;local6.*        @{{ rsys_log_srv }}:{{ rsys_log_srv_port }};TimeFormat
+     dest: /etc/rsyslog.d/remote.conf     
+  notify: restart_rsyslog_service
+  when:
+    - rsys_log_srv|default
+    - rsys_protocol == "udp"
+
+- name: Change Rsyslog Parameters in to /etc/rsyslog.conf
+  replace:
+     path=/etc/rsyslog.conf
+     regexp="^{{ item.pname }}"
+     replace="{{ item.value }}"
+  with_items:
+   - { pname: '.*\/var\/log\/secure$', value: 'authpriv.*;auth.*;daemon.*                    /var/log/secure'}
+   - { pname: '.*\/var\/log\/messages$', value: '*.info;mail.none;authpriv.none;cron.none;local6.none         /var/log/messages'}
+  notify: restart_rsyslog_service
+
+- name: Flush Rsyslog Handlers
+  meta: flush_handlers
+

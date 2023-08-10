@@ -1,28 +1,74 @@
 ---
+  - name: Check Current Status Of FIPS Mode
+    command: /usr/bin/fips-mode-setup --check
+    register: is_fips_enabled_db_install
+    changed_when: false
+    failed_when: false
 
   - name: Ansible SAP Hana DB Directory exists.
     stat:
       path: "/usr/sap/{{ sid }}"
     register: sap_hana_directory
 
-  - name: Creates a configuration file
-    template:
-      src: "hana.j2"
-      dest: "/{{ hana_deployment['destination'] }}/SAP_HANA_DATABASE/hana.cfg"
-      owner: root
-      group: root
-      mode: 0644
-    when: sap_hana_directory.stat.isdir is not defined
+  - name: Install Required Package For Rhel9
+    package:
+      name:  chkconfig
+      state: present
+    when: ansible_distribution_major_version == "9"
 
-  - name: Hana DB installation
-    command:
-      cmd: "./hdblcm -b --configfile=hana.cfg"
-      chdir: "/{{ hana_deployment['destination'] }}/SAP_HANA_DATABASE"
-    register: hana_db
-    when: sap_hana_directory.stat.isdir is not defined
+  - name: Insall SAP Hana Database
+    block:
+      - name: Creates a configuration file for install SAP Hana 
+        template:
+          src: "hana.j2"
+          dest: "/{{ hana_deployment['destination'] }}/SAP_HANA_DATABASE/hana.cfg"
+          owner: root
+          group: root
+          mode: 0644
 
-  - name:
-    debug:
-      var: hana_db.stdout_lines
-      #verbosity: 2
-    when: sap_hana_directory.stat.isdir is not defined
+      - name: Hana DB installation 
+        command:
+          cmd: "./hdblcm -b --configfile=hana.cfg"
+          chdir: "/{{ hana_deployment['destination'] }}/SAP_HANA_DATABASE"
+        register: hana_db
+   
+      - debug:
+          var: hana_db.stdout_lines
+
+      - name: Use FIPS 140-2 Certified Cryptographic Kernel in CommonCryptoLib
+        block:
+            - name: Stop HANA DB
+              command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB stop"
+              become: yes
+              become_user: "{{ sid | lower }}adm"
+              register: stop_db_fips_mode
+
+            - name: HANA DB Service Result
+              debug:
+                var: stop_db_fips_mode.stdout_lines
+
+            - name: "/hana/shared/{{ sid }}/global/hdb/custom/config/global.ini"
+              blockinfile:
+                dest: "/hana/shared/{{ sid }}/global/hdb/custom/config/global.ini"
+                marker: "## {mark} Use FIPS 140-2 Certified Cryptographic Kernel in CommonCryptoLib"
+                block: |
+                        [cryptography] 
+                        ccl_fips_enabled = true
+      
+            - name: Start HANA DB
+              command: "/usr/sap/{{ sid }}/HDB{{ number }}/HDB start"
+              become: yes
+              become_user: "{{ sid | lower }}adm"
+              register: start_db_fips_mode
+
+            - name: HANA DB Service Result
+              debug:
+                var: start_db_fips_mode.stdout_lines        
+
+        when: 
+        - fips_mode == true
+        - is_fips_enabled_db_install.stdout.find('FIPS mode is enabled.') == 0
+
+    when: 
+      - sap_hana_directory.stat.isdir is not defined
+

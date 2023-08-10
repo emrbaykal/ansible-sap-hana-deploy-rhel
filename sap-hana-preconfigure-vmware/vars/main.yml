@@ -10,7 +10,6 @@ sap_required_packages:
 - libcanberra-gtk2
 - libibverbs
 - libicu
-- libpng12
 - lm_sensors
 - nfs-utils
 - numactl
@@ -28,5 +27,9 @@ sap_required_packages:
 - gtk2
 - libtool-ltdl
 - tuned-profiles-sap-hana
-- compat-sap-c++-10
-
+- compat-sap-c++-12
+- iptraf-ng
+- kbd
+- kbd-legacy
+- ndctl
+- audispd-plugins

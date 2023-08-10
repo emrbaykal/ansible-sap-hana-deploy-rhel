@@ -10,6 +10,9 @@
   - name: postmap
     command: postmap /etc/postfix/canonical
 
+  - name: postmap_generic
+    command: postmap /etc/postfix/generic
+
   - name: postfix
     service:
       name: postfix
@@ -31,3 +34,5 @@
   - name: unload_usb-storage
     command: modprobe -r usb-storage
 
+  - name: compile_sasl_passwd
+    command: postmap /etc/postfix/sasl_passwd

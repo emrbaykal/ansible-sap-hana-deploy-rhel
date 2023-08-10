@@ -1,0 +1,43 @@
+---
+
+- name: Disable usb-mass storage
+  copy:
+    content: 'install usb-storage /bin/true'
+    dest: /etc/modprobe.d/usb_storage.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: unload_usb-storage
+  when: ansible_distribution_major_version == "8"
+
+- name: Enable USB GUARD
+  block:
+    - name: Ensure usbguard is installed
+      package:
+        name: usbguard
+        state: present
+
+    - name: Allow HID devices and hubs
+      lineinfile: 
+         path: /etc/usbguard/rules.conf
+         create: true 
+         line: allow with-interface match-all { 03:*:* 09:00:* }
+         state: present 
+
+    - name: Ensure usbguard is installed
+      systemd: 
+         name: usbguard
+         enabled: 'yes'
+         state: restarted 
+         masked: 'no' 
+
+    - name: Check that your custom rules are in the active policy
+      command:
+         cmd: usbguard list-rules
+      register: usbguard_out
+
+    - name: Show Active usbquard rules
+      debug:
+        msg: "List Active USB Guard Rules : {{ usbguard_out.stdout_lines }}"
+
+  when: ansible_distribution_major_version == "9"

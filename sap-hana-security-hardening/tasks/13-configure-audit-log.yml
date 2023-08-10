@@ -1,0 +1,35 @@
+---
+
+- name: Change auditd.conf  Parameters in to /etc/audit/auditd.conf
+  replace:
+     path=/etc/audit/auditd.conf
+     regexp="^{{ item.pname }}"
+     replace="{{ item.value }}"
+  with_items:
+   - { pname: '^log_file\s=\s(.+)$', value: 'log_file = /var/log/audit/audit.log'}
+   - { pname: '^local_events\s=\s(.+)$', value: 'local_events = yes'}
+   - { pname: '^log_format\s=\s(.+)$', value: 'log_format = ENRICHED'}
+   - { pname: '^max_log_file\s=\s(.+)$', value: 'max_log_file = 100'}
+   - { pname: '^max_log_file_action\s=\s(.+)$', value: 'max_log_file_action = ROTATE'}
+   - { pname: '^space_left\s=\s(.+)$', value: 'space_left = 10%'}
+   - { pname: '^admin_space_left\s=\s(.+)$', value: 'admin_space_left = 3%'}
+   - { pname: '^space_left_action\s=\s(.+)$', value: 'space_left_action = email'}
+   - { pname: '^action_mail_acct\s=\s(.+)$', value: 'action_mail_acct = root'}
+   - { pname: '^admin_space_left_action\s=\s(.+)$', value: 'admin_space_left_action = suspend'}
+   - { pname: '^name_format\s=\s(.+)$', value: 'name_format = hostname'}
+   
+  notify: restart_auditd_service
+
+- name: deploy auditd.rules file to the clients
+  template:
+   src: audit.j2
+   dest: /etc/audit/rules.d/audit.rules
+   owner: root
+   group: root
+   mode: 0640
+   backup: yes
+  notify: restart_auditd_service
+
+- name: Flush Auditd Handlers
+  meta: flush_handlers
+

@@ -1,10 +1,18 @@
 ---
 
+- name: Sleep for 30 seconds and continue with play
+  wait_for:
+    timeout: 30
+  delegate_to: localhost
+
 - name: Enabling System Replication on Slave Node
-  shell: su - "{{ sid | lower }}adm" -c "/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_register --remoteHost={{ primary_server['hostname'] }} --remoteInstance={{ number }} --replicationMode={{ replication_type }} --name={{ secondary_server['hostname'] }} --operationMode={{ operation_mode }} --force_full_replica"
+  shell: su - "{{ sid | lower }}adm" -c "/usr/sap/{{ sid }}/HDB{{ number }}/exe/hdbnsutil -sr_register --remoteHost={{ primary_server['hostname'] }} --remoteInstance={{ number }} --replicationMode={{ tier2_replication_type }} --name={{ secondary_server['hostname'] }} --operationMode={{ operation_mode }} --force_full_replica"
   args:
     executable: /bin/bash
   register: secondary_system_replication
+  retries: 3
+  delay: 10
+  until: secondary_system_replication.rc == 0
 
 - name: Enabling System Replication on Slave Node Status
   debug:
