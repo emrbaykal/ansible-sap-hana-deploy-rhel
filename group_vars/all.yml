@@ -2,4 +2,4 @@
 
 ansible_connection: ssh
 ansible_user: root
-ansible_ssh_pass: xxxxx
+ansible_ssh_pass: xxxx
