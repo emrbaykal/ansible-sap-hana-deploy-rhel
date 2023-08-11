@@ -5,6 +5,6 @@
     name: oper
     comment: Operator User
     groups: wheel
-    password: $6$e7hrfs.O7SdZeMis$RpnhN.aVMYgsJHVQdaJm9./EhoiUPFFLLUZhsAA87zwILwwhKNKyxE/.v6UsFxo9V0XTOBF/eD4pmxFTDiEuG1
+    password: xxxxxxxxx
     state: present
 
