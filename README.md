@@ -158,7 +158,7 @@ hanavols:
 The following variable define NTP server information
 ```yaml
 ntp_servers:
-     hostname: 192.168.1.11
+     hostname: xx.xx.xx.xx
 ```
 
 ### Hana Installtion Files
@@ -168,7 +168,7 @@ hana_deployment:
     server: IMDB_SERVER20_045_0-80002031.SAR
     client: IMDB_CLIENT20_004_171-80002082.SAR
     sapcar: SAPCAR_1311-80000935.EXE
-    source: /home/emre/Documents/SAP/SAP-IMAGES/HANA2.0/SP04
+    source: /home/test/Documents/SAP/SAP-IMAGES/HANA2.0/SP04
     destination: /setup
 ```
 ### Hana DB Configuration Parameters
@@ -203,19 +203,19 @@ The following variable define SAP Hana DB Replication Parameters
 ```yaml
 primary_server:
   hostname: testhanadb1
-  public_ip: 192.168.1.21
-  replication_ip: 192.168.254.11
+  public_ip: xx.xx.xx.xx
+  replication_ip: xx.xx.xx.xx
 
 secondary_server:
   hostname: testhanadb2
-  public_ip: 192.168.1.22
-  replication_ip: 192.168.254.12
+  public_ip: xx.xx.xx.xx
+  replication_ip: xx.xx.xx.xx
 
 # Replication Type ( sync | syncmem | async )
 replication_type: async
 
 # Hana Key Exchange Temporary Storage ( logreplay )
-sap_hana_hsr_keyexchange_tmp: /home/emre/Documents/Office/git/ansible-sap-hana-deploy-rhel/hsr_keyexchange_tmp
+sap_hana_hsr_keyexchange_tmp: /home/test/Documents/Office/git/ansible-sap-hana-deploy-rhel/hsr_keyexchange_tmp
 
 ```
 
@@ -344,7 +344,7 @@ Example Playbook
 
           # rhel-system-roles.timesync variables
           ntp_servers:
-               hostname: 192.168.1.11
+               hostname: xx.xx.xx.xx
               # hostname: 1.rhel.pool.ntp.org
 
 
@@ -353,7 +353,7 @@ Example Playbook
               server: IMDB_SERVER20_045_0-80002031.SAR
               client: IMDB_CLIENT20_004_171-80002082.SAR
               sapcar: SAPCAR_1311-80000935.EXE
-              source: /home/emre/Documents/SAP/SAP-IMAGES/HANA2.0/SP04
+              source: /home/test/Documents/SAP/SAP-IMAGES/HANA2.0/SP04
               destination: /setup
 
           # Hana DB Configuration Parameters
@@ -384,13 +384,13 @@ Example Playbook
 
           primary_server:
             hostname: testhanadb1
-            public_ip: 192.168.1.21
-            replication_ip: 192.168.254.11
+            public_ip: xx.xx.xx.xx
+            replication_ip: xx.xx.xx.xx
 
           secondary_server:
             hostname: testhanadb2
-            public_ip: 192.168.1.22
-            replication_ip: 192.168.254.12
+            public_ip: xx.xx.xx.xx
+            replication_ip: xx.xx.xx.xx
 
           # Replication Type ( sync | syncmem | async )
           replication_type: syncmem
