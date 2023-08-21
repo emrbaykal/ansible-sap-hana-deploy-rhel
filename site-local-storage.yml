@@ -29,16 +29,16 @@
           pam_module: google-authenticator-libpam-1.09-15.2.x86_64.rpm
 
           # Sap Servers Hostname / IP Informations
-          fqdn: hpelab.local
+          fqdn: lab.local
 
           # Mail Relay Host / Admin Mail Address
           # relayhost: smtp.office365.com If Customer using relay mail to Office 365
           relayhost: smtp.office365.com
-          recipientmail: emre.baykal@hpelab.local
-          sendermail: emre.baykal@hpelab.local
+          recipientmail: emre.baykal@lab.local
+          sendermail: emre.baykal@lab.local
           # sendermail_password: sender mail password If Customer using relay mail to Office 365, oherwise keep blank
           sendermail_password: xxxxx
-          mail_domain: hpelab.local
+          mail_domain: lab.local
 
           # Remote Sys Log Server // Keep Blank if rsyslog server not desired
           rsys_log_srv: XXX.XXX.XXX.XXX
@@ -64,7 +64,7 @@
           oneview_ip: XXX.XXX.XXX.XXX
           oneview_username: administrator
           oneview_password: xxxxxxxxxx
-          email_sender: emre.baykal@hpelab.local
+          email_sender: emre.baykal@lab.local
 
           # Hana StoreOnce Catalyst Plug In Config
           catalyst_plugin: HPE_StoreOnce_Catalyst_Plug_in_2.2.0_for_SAP_HANA_Linux_EH991-91007.tar.gz
